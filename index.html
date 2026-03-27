@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pickl-IQ — Pickleball Weather Planner</title>
+  <style>
+    :root {
+      --green:  #22c55e;
+      --yellow: #eab308;
+      --orange: #f97316;
+      --red:    #ef4444;
+      --blue:   #3b82f6;
+      --bg:     #0f172a;
+      --card:   #1e293b;
+      --border: #334155;
+      --text:   #f1f5f9;
+      --muted:  #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%);
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+    header h1 span { color: #60a5fa; }
+    header p  { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+
+    /* ── Main layout ── */
+    main { max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; }
+
+    /* ── Court Tabs ── */
+    .court-tabs {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .court-tab {
+      flex: 1; min-width: 180px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .court-tab:hover  { border-color: var(--blue); }
+    .court-tab.active { border-color: #3b82f6; background: #1e3a5f; }
+    .court-tab .name  { font-weight: 700; font-size: 0.95rem; }
+    .court-tab .meta  { font-size: 0.75rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+    .court-tab .badge {
+      display: inline-block; font-size: 0.65rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 20px; margin-top: 6px;
+    }
+    .badge-light  { background: #fef9c3; color: #713f12; }
+    .badge-nolight{ background: #fee2e2; color: #7f1d1d; }
+    .badge-covered{ background: #dcfce7; color: #14532d; }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .controls select, .controls button {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .controls button { background: var(--blue); border-color: var(--blue); font-weight: 600; }
+    .controls button:hover { background: #2563eb; }
+    #status { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Forecast grid ── */
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .day-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .day-card:hover    { border-color: #60a5fa; transform: translateY(-2px); }
+    .day-card.selected { border-color: #3b82f6; background: #1e3a5f; }
+    .day-card .dow     { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .day-card .date    { font-size: 0.85rem; font-weight: 700; margin: 2px 0; }
+    .day-card .wicon   { font-size: 1.6rem; margin: 6px 0; }
+    .day-card .temps   { font-size: 0.75rem; color: var(--muted); }
+    .day-card .wind-sm { font-size: 0.7rem; margin-top: 4px; }
+    .day-card .rec-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      margin: 8px auto 0;
+    }
+    .dot-great  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot-ok     { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .dot-marg   { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+    .dot-bad    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+    /* ── Detail panel ── */
+    #detail-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: none;
+    }
+    #detail-panel h2 { font-size: 1.1rem; margin-bottom: 16px; }
+    #detail-panel h2 span { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
+
+    .session-block {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .session-block h3 {
+      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--muted); margin-bottom: 10px;
+    }
+    .hour-rows { display: flex; flex-direction: column; gap: 6px; }
+    .hour-row {
+      display: grid;
+      grid-template-columns: 56px 34px 68px 110px 80px 70px 1fr;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+    .hour-row .time   { color: var(--muted); }
+    .hour-row .icon   { font-size: 1rem; text-align: center; }
+    .hour-row .temp   { }
+    .hour-row .wind   { }
+    .hour-row .dir    { color: var(--muted); font-size: 0.78rem; }
+    .hour-row .rain   { color: var(--blue); }
+    .wind-arrow { display: inline-block; font-size: 0.9rem; margin-right: 2px; }
+    .rec-pill {
+      display: inline-block; font-size: 0.68rem; font-weight: 700;
+      padding: 2px 10px; border-radius: 20px; text-align: center;
+    }
+    .pill-great  { background: #14532d; color: #86efac; }
+    .pill-ok     { background: #713f12; color: #fde68a; }
+    .pill-windy  { background: #7c2d12; color: #fdba74; }
+    .pill-bad    { background: #450a0a; color: #fca5a5; }
+    .pill-closed { background: #1e293b; color: var(--muted); }
+    .pill-rain   { background: #1e3a5f; color: #93c5fd; }
+
+    .day-summary {
+      display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .sum-badge {
+      background: #0f172a; border-radius: 8px; padding: 8px 14px;
+      font-size: 0.8rem;
+    }
+    .sum-badge .label { color: var(--muted); font-size: 0.7rem; }
+    .sum-badge .value { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;
+      font-size: 0.75rem; color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot  { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── Loading ── */
+    .loading {
+      text-align: center; padding: 40px; color: var(--muted);
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      background: #450a0a; border: 1px solid #991b1b; border-radius: 10px;
+      padding: 16px; color: #fca5a5; font-size: 0.85rem;
+    }
+
+    @media (max-width: 600px) {
+      .hour-row { grid-template-columns: 50px 28px 60px 100px 1fr; }
+      .hour-row .rain { display: none; }
+      .hour-row .dir  { display: none; }
+      .forecast-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Pickl<span>-IQ</span> 🏓</h1>
+  <p>Pickleball weather planner — DFW Collin County courts</p>
+</header>
+
+<main>
+  <!-- Court Selector -->
+  <div class="court-tabs" id="courtTabs">
+    <div class="court-tab active" data-court="0" onclick="selectCourt(0)">
+      <div class="name">Otto Middle School</div>
+      <div class="meta">Murphy, TX · 8 courts (4 tennis→PB)<br>Slightly windier · Side covers only</div>
+      <span class="badge badge-nolight">No lights</span>
+      <span class="badge badge-covered" style="margin-left:4px">Side covers</span>
+    </div>
+    <div class="court-tab" data-court="1" onclick="selectCourt(1)">
+      <div class="name">Maxwell Creek Park</div>
+      <div class="meta">Murphy, TX 75094 · 2 dedicated PB courts<br>Side covers only · Lights until 11 PM</div>
+      <span class="badge badge-light">Lights till 11 PM</span>
+      <span class="badge badge-covered" style="margin-left:4px">Side covers</span>
+    </div>
+    <div class="court-tab" data-court="2" onclick="selectCourt(2)">
+      <div class="name">Wylie Community Courts</div>
+      <div class="meta">Wylie, TX 75098 · 6 courts · Fully covered<br>(sides + top) · Lights until 10 PM</div>
+      <span class="badge badge-light">Lights till 10 PM</span>
+      <span class="badge badge-covered" style="margin-left:4px">Full cover</span>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button onclick="loadWeather()">⟳ Refresh Forecast</button>
+    <span id="status">Loading weather…</span>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Great play</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Borderline (~12-16 mph)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Marginal (windy/heat)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Don't play</div>
+  </div>
+
+  <!-- 14-day forecast grid -->
+  <div id="forecastContainer">
+    <div class="loading"><div class="spinner"></div>Fetching forecast…</div>
+  </div>
+
+  <!-- Hourly detail -->
+  <div id="detail-panel"></div>
+</main>
+
+<script>
+// ── Court definitions ──────────────────────────────────────────────────────
+const COURTS = [
+  {
+    name: 'Otto Middle School',
+    city: 'Murphy, TX',
+    lat: 33.0151, lon: -96.6113,
+    hasLights: false,
+    lightsUntil: null,
+    covered: false,  // side covers only, no top
+    windFactor: 1.1,  // slightly windier
+    // Play windows: weekends 7:30-9:30 AM and 5 PM – sunset; weekdays Mon/Wed 5–7 PM max sunset
+    sessions: (date, sunrise, sunset) => buildSessions(date, sunrise, sunset, false),
+  },
+  {
+    name: 'Maxwell Creek Park',
+    city: 'Murphy, TX',
+    lat: 33.0094, lon: -96.6058,
+    hasLights: true,
+    lightsUntil: 23, // 11 PM
+    covered: false,  // side covers only, no top
+    windFactor: 1.0,
+    sessions: (date, sunrise, sunset) => buildSessions(date, sunrise, sunset, true, 23),
+  },
+  {
+    name: 'Wylie Community Courts',
+    city: 'Wylie, TX',
+    lat: 33.0151, lon: -96.5388,
+    hasLights: true,
+    lightsUntil: 22, // 10 PM
+    covered: true,
+    windFactor: 1.0,
+    sessions: (date, sunrise, sunset) => buildSessions(date, sunrise, sunset, true, 22),
+  },
+];
+
+let selectedCourt = 0;
+let weatherData = null;
+let selectedDayIdx = 0;
+
+// ── Session builder ────────────────────────────────────────────────────────
+function buildSessions(date, sunrise, sunset, hasLights, lightsUntil = null) {
+  const dow = date.getDay(); // 0=Sun,1=Mon,...,6=Sat
+  const isWeekend = dow === 0 || dow === 6;
+  const isMon = dow === 1;
+  const isWed = dow === 3;
+  const sessions = [];
+  const sunsetHour = Math.floor(sunset / 60);
+  const playableEvening = hasLights ? (lightsUntil || sunsetHour) : sunsetHour;
+
+  if (isWeekend) {
+    sessions.push({ label: 'Morning Session', start: 7, end: 10 });
+    if (playableEvening >= 19) {
+      sessions.push({ label: 'Evening Session', start: 17, end: playableEvening });
+    } else if (playableEvening >= 17) {
+      sessions.push({ label: 'Evening Session', start: 17, end: playableEvening });
+    }
+  }
+  if (isMon || isWed) {
+    if (playableEvening >= 18) {
+      sessions.push({ label: `Weekday Session (${dow === 1 ? 'Mon' : 'Wed'})`, start: 17, end: Math.min(playableEvening, 19) });
+    }
+  }
+  return sessions;
+}
+
+// ── WMO weather code mappings ──────────────────────────────────────────────
+const WMO = {
+  0:  { label: 'Clear',          icon: '☀️',  rain: false },
+  1:  { label: 'Mainly Clear',   icon: '🌤️', rain: false },
+  2:  { label: 'Partly Cloudy',  icon: '⛅',  rain: false },
+  3:  { label: 'Overcast',       icon: '☁️',  rain: false },
+  45: { label: 'Foggy',          icon: '🌫️', rain: false },
+  48: { label: 'Foggy',          icon: '🌫️', rain: false },
+  51: { label: 'Light Drizzle',  icon: '🌦️', rain: true  },
+  53: { label: 'Drizzle',        icon: '🌦️', rain: true  },
+  55: { label: 'Heavy Drizzle',  icon: '🌧️', rain: true  },
+  61: { label: 'Light Rain',     icon: '🌧️', rain: true  },
+  63: { label: 'Rain',           icon: '🌧️', rain: true  },
+  65: { label: 'Heavy Rain',     icon: '🌧️', rain: true  },
+  71: { label: 'Light Snow',     icon: '🌨️', rain: true  },
+  73: { label: 'Snow',           icon: '❄️',  rain: true  },
+  75: { label: 'Heavy Snow',     icon: '❄️',  rain: true  },
+  80: { label: 'Showers',        icon: '🌦️', rain: true  },
+  81: { label: 'Showers',        icon: '🌧️', rain: true  },
+  82: { label: 'Heavy Showers',  icon: '⛈️', rain: true  },
+  95: { label: 'Thunderstorm',   icon: '⛈️', rain: true  },
+  96: { label: 'T-storm + Hail', icon: '⛈️', rain: true  },
+  99: { label: 'T-storm + Hail', icon: '⛈️', rain: true  },
+};
+function wmo(code) { return WMO[code] || { label: 'Unknown', icon: '❓', rain: false }; }
+
+// ── Play condition scoring ─────────────────────────────────────────────────
+function scoreHour(temp, wind, gust, precipProb, wmoCode, windFactor = 1.0) {
+  const effWind = wind * windFactor;
+  const effGust = gust * windFactor;
+  const w = wmo(wmoCode);
+
+  if (w.rain && precipProb > 30) return 'rain';
+  if (precipProb > 50) return 'rain';
+  if (wmoCode >= 95) return 'rain';
+
+  if (effGust > 28 || effWind > 20) return 'bad';
+  if (temp > 105 || temp < 35)       return 'bad';
+
+  if (effGust > 22 || effWind > 16) return 'windy';
+  if (temp > 100 || temp < 42)       return 'windy';
+
+  if (effWind > 12 || effGust > 18) return 'ok';
+  if (temp > 95 || temp < 48)        return 'ok';
+
+  return 'great';
+}
+
+function dayScore(hours) {
+  const scores = hours.map(h => h.score);
+  if (scores.every(s => s === 'bad' || s === 'rain')) return 'bad';
+  if (scores.some(s => s === 'rain')) return 'marg';
+  if (scores.every(s => s === 'great')) return 'great';
+  if (scores.filter(s => s === 'ok' || s === 'great').length >= scores.length / 2) return 'ok';
+  return 'marg';
+}
+
+const PILL = {
+  great: '<span class="rec-pill pill-great">Great</span>',
+  ok:    '<span class="rec-pill pill-ok">Borderline</span>',
+  windy: '<span class="rec-pill pill-windy">Too Windy</span>',
+  rain:  '<span class="rec-pill pill-rain">Rain / Wet</span>',
+  bad:   '<span class="rec-pill pill-bad">Don\'t Play</span>',
+  closed:'<span class="rec-pill pill-closed">Closed / Dark</span>',
+};
+
+// ── Fetch weather ──────────────────────────────────────────────────────────
+async function loadWeather() {
+  document.getElementById('status').textContent = 'Loading…';
+  document.getElementById('forecastContainer').innerHTML =
+    '<div class="loading"><div class="spinner"></div>Fetching 14-day forecast…</div>';
+  document.getElementById('detail-panel').style.display = 'none';
+
+  const court = COURTS[selectedCourt];
+  const url = `https://api.open-meteo.com/v1/forecast` +
+    `?latitude=${court.lat}&longitude=${court.lon}` +
+    `&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m,windgusts_10m,winddirection_10m` +
+    `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,windgusts_10m_max,sunrise,sunset` +
+    `&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=14`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('API error ' + res.status);
+    weatherData = await res.json();
+    renderForecast();
+    document.getElementById('status').textContent =
+      `Updated ${new Date().toLocaleTimeString()} · ${court.city}`;
+  } catch (e) {
+    document.getElementById('forecastContainer').innerHTML =
+      `<div class="error-box">Could not fetch weather data. Check your connection.<br><small>${e.message}</small></div>`;
+    document.getElementById('status').textContent = 'Error loading data';
+  }
+}
+
+// ── Parse sunrise/sunset (ISO string → minutes since midnight) ─────────────
+function parseTime(isoStr) {
+  const d = new Date(isoStr);
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+// ── Render 14-day grid ─────────────────────────────────────────────────────
+function renderForecast() {
+  const d  = weatherData.daily;
+  const h  = weatherData.hourly;
+  const court = COURTS[selectedCourt];
+  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  let html = '<div class="forecast-grid">';
+
+  for (let i = 0; i < d.time.length; i++) {
+    const date    = new Date(d.time[i] + 'T12:00:00');
+    const dow     = DOW[date.getDay()];
+    const sunrise = parseTime(d.sunrise[i]);
+    const sunset  = parseTime(d.sunset[i]);
+
+    // Get hourly indices for this day
+    const dayStart = i * 24;
+    const sessions = court.sessions(date, sunrise, sunset);
+
+    // Score all session hours
+    const playHours = [];
+    for (const sess of sessions) {
+      for (let hr = sess.start; hr < sess.end; hr++) {
+        const idx = dayStart + hr;
+        playHours.push({
+          hour: hr,
+          temp:  h.temperature_2m[idx],
+          wind:  h.windspeed_10m[idx],
+          gust:  h.windgusts_10m[idx],
+          precip: h.precipitation_probability[idx],
+          code:  h.weathercode[idx],
+          score: scoreHour(
+            h.temperature_2m[idx],
+            h.windspeed_10m[idx],
+            h.windgusts_10m[idx],
+            h.precipitation_probability[idx],
+            h.weathercode[idx],
+            court.windFactor
+          ),
+        });
+      }
+    }
+
+    const overallScore = playHours.length === 0 ? 'bad' : dayScore(playHours);
+    const dotClass = { great:'dot-great', ok:'dot-ok', marg:'dot-marg', bad:'dot-bad' }[overallScore] || 'dot-bad';
+    const isSelected = i === selectedDayIdx ? 'selected' : '';
+    const isToday = i === 0 ? ' (Today)' : '';
+
+    html += `
+      <div class="day-card ${isSelected}" onclick="showDetail(${i})" id="day-${i}">
+        <div class="dow">${dow}${isToday ? ' •' : ''}</div>
+        <div class="date">${MON[date.getMonth()]} ${date.getDate()}</div>
+        <div class="wicon">${wmo(d.weathercode[i]).icon}</div>
+        <div class="temps">${Math.round(d.temperature_2m_max[i])}° / ${Math.round(d.temperature_2m_min[i])}°F</div>
+        <div class="wind-sm" style="color:${windColor(d.windspeed_10m_max[i] * court.windFactor)}">
+          💨 ${Math.round(d.windspeed_10m_max[i])} mph
+        </div>
+        <div class="rec-dot ${dotClass}"></div>
+      </div>`;
+  }
+
+  html += '</div>';
+  document.getElementById('forecastContainer').innerHTML = html;
+
+  // Auto-show today
+  showDetail(0);
+}
+
+function windColor(wind) {
+  if (wind <= 12) return '#22c55e';
+  if (wind <= 16) return '#eab308';
+  if (wind <= 20) return '#f97316';
+  return '#ef4444';
+}
+
+// ── Show hourly detail for a day ───────────────────────────────────────────
+function showDetail(dayIdx) {
+  selectedDayIdx = dayIdx;
+
+  // Update selected card styling
+  document.querySelectorAll('.day-card').forEach((el, i) => {
+    el.classList.toggle('selected', i === dayIdx);
+  });
+
+  const d  = weatherData.daily;
+  const h  = weatherData.hourly;
+  const court = COURTS[selectedCourt];
+  const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const date    = new Date(d.time[dayIdx] + 'T12:00:00');
+  const dow     = DOW[date.getDay()];
+  const sunrise = parseTime(d.sunrise[dayIdx]);
+  const sunset  = parseTime(d.sunset[dayIdx]);
+  const dayStart = dayIdx * 24;
+  const sessions = court.sessions(date, sunrise, sunset);
+  const sunsetH = `${Math.floor(sunset/60)}:${String(sunset%60).padStart(2,'0')}`;
+
+  const panel = document.getElementById('detail-panel');
+  panel.style.display = 'block';
+
+  // Day summary badges
+  const maxWind = Math.round(d.windspeed_10m_max[dayIdx] * court.windFactor);
+  const maxGust = Math.round(d.windgusts_10m_max[dayIdx] * court.windFactor);
+  const precip  = d.precipitation_sum[dayIdx]?.toFixed(1) || '0.0';
+
+  let html = `
+    <h2>${dow}, ${MON[date.getMonth()]} ${date.getDate()}
+      <span> — ${court.name}</span>
+    </h2>
+    <div class="day-summary">
+      <div class="sum-badge">
+        <div class="label">Condition</div>
+        <div class="value">${wmo(d.weathercode[dayIdx]).icon} ${wmo(d.weathercode[dayIdx]).label}</div>
+      </div>
+      <div class="sum-badge">
+        <div class="label">High / Low</div>
+        <div class="value">${Math.round(d.temperature_2m_max[dayIdx])}° / ${Math.round(d.temperature_2m_min[dayIdx])}°F</div>
+      </div>
+      <div class="sum-badge">
+        <div class="label">Max Wind</div>
+        <div class="value" style="color:${windColor(maxWind)}">${maxWind} mph</div>
+      </div>
+      <div class="sum-badge">
+        <div class="label">Max Gust</div>
+        <div class="value" style="color:${windColor(maxGust)}">${maxGust} mph</div>
+      </div>
+      <div class="sum-badge">
+        <div class="label">Precip</div>
+        <div class="value">${precip}" rain</div>
+      </div>
+      <div class="sum-badge">
+        <div class="label">Sunset</div>
+        <div class="value">${formatHour(Math.floor(sunset/60), sunset%60)}</div>
+      </div>
+    </div>`;
+
+  if (sessions.length === 0) {
+    html += `<div class="session-block" style="color:var(--muted);text-align:center;padding:24px">
+      No typical play sessions on this day (${dow.substring(0,3)}).<br>
+      <small>Your group plays Mon/Wed evenings and weekends.</small>
+    </div>`;
+  }
+
+  for (const sess of sessions) {
+    html += `<div class="session-block">
+      <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end)}</h3>
+      <div class="hour-rows">
+        <div class="hour-row" style="color:var(--muted);font-size:0.7rem;margin-bottom:2px">
+          <span>Time</span><span>Sky</span><span>Temp</span><span>Wind / Gust</span><span>Rain%</span><span>Dir</span><span>Play?</span>
+        </div>`;
+
+    for (let hr = sess.start; hr < sess.end; hr++) {
+      const idx   = dayStart + hr;
+      const temp  = h.temperature_2m[idx];
+      const wind  = Math.round(h.windspeed_10m[idx] * court.windFactor);
+      const gust  = Math.round(h.windgusts_10m[idx] * court.windFactor);
+      const dir   = h.winddirection_10m[idx];
+      const pp    = h.precipitation_probability[idx] || 0;
+      const code  = h.weathercode[idx];
+      const score = scoreHour(temp, wind/court.windFactor, gust/court.windFactor, pp, code, court.windFactor);
+
+      // Check if court is closed (no lights, after sunset)
+      const afterSunset = hr >= Math.ceil(sunset / 60);
+      const afterClose  = court.hasLights && hr >= court.lightsUntil;
+      const isClosed    = (!court.hasLights && afterSunset) || afterClose;
+
+      const pill = isClosed ? PILL.closed : (
+        score === 'great' ? PILL.great :
+        score === 'ok'    ? PILL.ok    :
+        score === 'windy' ? PILL.windy :
+        score === 'rain'  ? PILL.rain  :
+        PILL.bad
+      );
+
+      html += `
+        <div class="hour-row">
+          <span class="time">${formatHour(hr)}</span>
+          <span class="icon">${wmo(code).icon}</span>
+          <span class="temp">${Math.round(temp)}°F</span>
+          <span class="wind" style="color:${windColor(wind)}">${wind} <span style="color:var(--muted);font-size:0.72rem">/ ${gust}g</span></span>
+          <span class="rain">${pp}%</span>
+          <span class="dir"><span class="wind-arrow">${windArrow(dir)}</span>${windDir(dir)}</span>
+          <span>${pill}</span>
+        </div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  // Tip section
+  html += buildTips(dayIdx, sessions, court);
+
+  panel.innerHTML = html;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Tips based on conditions ───────────────────────────────────────────────
+function buildTips(dayIdx, sessions, court) {
+  const d = weatherData.daily;
+  const maxWind = Math.round(d.windspeed_10m_max[dayIdx] * court.windFactor);
+  const maxGust = Math.round(d.windgusts_10m_max[dayIdx] * court.windFactor);
+  const precip  = d.precipitation_sum[dayIdx] || 0;
+  const code    = d.weathercode[dayIdx];
+  const tips    = [];
+
+  if (maxWind > 16 && maxWind <= 20)
+    tips.push('⚠️ Wind is above ideal today. Serve into the wind and keep shots low. Dink cross-court more.');
+  if (maxGust > 22)
+    tips.push('🚫 High gusts expected — ball control will be very difficult. Consider skipping or playing extra casual.');
+  if (precip > 0.1 || wmo(code).rain) {
+    if (court.name.includes('Wylie'))
+      tips.push('🌧️ Rain expected, but Wylie courts have a full top cover — you may still be able to play if it\'s light rain. Check courts before heading out.');
+    else
+      tips.push('🌧️ Wet courts likely. Otto and Maxwell Creek only have side covers — rain will reach the court surface. Wylie (full top cover) is your best bet today.');
+  }
+  if (maxWind <= 12 && !wmo(code).rain)
+    tips.push('✅ Conditions look great! Ideal day to bring out new players or work on technique.');
+  if (court.name.includes('Otto') && maxWind > 10)
+    tips.push('💨 Otto tends to be windier — consider Maxwell Creek or Wylie if wind is a concern.');
+
+  if (tips.length === 0) return '';
+  return `<div style="background:#0f172a;border-radius:10px;padding:14px 16px;margin-top:4px">
+    <h3 style="font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">Tips for Today</h3>
+    ${tips.map(t => `<p style="font-size:0.82rem;margin-bottom:8px;line-height:1.5">${t}</p>`).join('')}
+  </div>`;
+}
+
+// ── Wind direction ─────────────────────────────────────────────────────────
+function windDir(deg) {
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+// Arrow points the direction wind is coming FROM (meteorological convention)
+function windArrow(deg) {
+  // Arrow points into the wind (where it's blowing toward)
+  const arrows = ['↓','↙','←','↖','↑','↗','→','↘'];
+  return arrows[Math.round(deg / 45) % 8];
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function formatHour(h, m = 0) {
+  const ampm = h < 12 ? 'AM' : 'PM';
+  const hr   = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return m ? `${hr}:${String(m).padStart(2,'0')} ${ampm}` : `${hr}:00 ${ampm}`;
+}
+
+function selectCourt(idx) {
+  selectedCourt = idx;
+  document.querySelectorAll('.court-tab').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+  loadWeather();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+loadWeather();
+</script>
+</body>
+</html>
