@@ -310,6 +310,53 @@
     }
     #toast.show { transform: translateX(-50%) translateY(0); }
 
+    /* ── Dark mode overrides ── */
+    body.dark {
+      --bg:     #0f172a;
+      --card:   #1e293b;
+      --border: #334155;
+      --text:   #f1f5f9;
+      --muted:  #94a3b8;
+      --subtle: #475569;
+      --green-bg: #052e16;
+      --yel-bg:   #1c1400;
+      --ora-bg:   #1c0a00;
+      --red-bg:   #1c0000;
+      --blue-bg:  #0c1a2e;
+    }
+    body.dark header  { background:#1e293b; border-color:#334155; box-shadow:0 1px 3px rgba(0,0,0,.3); }
+    body.dark .hbtn   { background:#334155; border-color:#475569; color:#f1f5f9; }
+    body.dark .hbtn:hover { background:#475569; }
+    body.dark .court-tab  { background:#1e293b; border-color:#334155; }
+    body.dark .court-tab.active { background:#1e3a5f; }
+    body.dark .court-tab:hover  { box-shadow:0 0 0 3px #1e3a5f; }
+    body.dark .btn-ghost  { background:#1e293b; border-color:#334155; color:#f1f5f9; }
+    body.dark .btn-ghost:hover { background:#334155; }
+    body.dark #players-panel  { background:#1e293b; border-color:#334155; }
+    body.dark .player-add input { background:#0f172a; border-color:#334155; }
+    body.dark .player-chip  { background:#0f172a; border-color:#334155; }
+    body.dark .day-card  { background:#1e293b; border-color:#334155; }
+    body.dark .day-card.selected { background:#1e3a5f; }
+    body.dark #detail-panel { background:#1e293b; border-color:#334155; }
+    body.dark .sum-badge  { background:#0f172a; border-color:#334155; }
+    body.dark .session-block { background:#0f172a; border-color:#334155; }
+    body.dark .hour-row   { background:#1e293b; border-color:#334155; }
+    body.dark .tips-block { background:#1e293b; border-color:#334155; }
+    body.dark .tips-block p { color:#f1f5f9; }
+    body.dark .rsvp-btn   { background:#0f172a; border-color:#334155; }
+    body.dark .sp-great { background:#052e16; color:#86efac; }
+    body.dark .sp-ok    { background:#1c1400; color:#fde68a; }
+    body.dark .sp-windy { background:#1c0a00; color:#fdba74; }
+    body.dark .sp-bad   { background:#1c0000; color:#fca5a5; }
+    body.dark .sp-rain  { background:#0c1a2e; color:#93c5fd; }
+    body.dark .pill-great  { background:#052e16; color:#86efac; border-color:#166534; }
+    body.dark .pill-ok     { background:#1c1400; color:#fde68a; border-color:#854d0e; }
+    body.dark .pill-windy  { background:#1c0a00; color:#fdba74; border-color:#9a3412; }
+    body.dark .pill-bad    { background:#1c0000; color:#fca5a5; border-color:#991b1b; }
+    body.dark .pill-rain   { background:#0c1a2e; color:#93c5fd; border-color:#1d4ed8; }
+    body.dark .pill-closed { background:#1e293b; color:#64748b; border-color:#334155; }
+    body.dark .dc-no-sess  { color:#475569; }
+
     @media (max-width: 640px) {
       header { padding: 0 14px; }
       main { padding: 14px 12px 40px; }
@@ -335,6 +382,7 @@
   <div class="header-right">
     <span id="status-dot"></span>
     <span id="status-text">Loading…</span>
+    <button class="hbtn" id="themeBtn" onclick="toggleDark()">🌙 Dark</button>
     <button class="hbtn" onclick="shareDay()">📤 Share</button>
     <button class="hbtn" id="installBtn" style="display:none" onclick="installApp()">📲 Install</button>
   </div>
@@ -871,6 +919,18 @@ function installApp(){
   if(!deferredPrompt)return;
   deferredPrompt.prompt();
   deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('installBtn').style.display='none';});
+}
+
+// ── Dark mode ─────────────────────────────────────────────────────────────
+function toggleDark() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('pickl-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️ Light' : '🌙 Dark';
+}
+// Apply saved preference on load
+if (localStorage.getItem('pickl-theme') === 'dark') {
+  document.body.classList.add('dark');
+  document.getElementById('themeBtn').textContent = '☀️ Light';
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
