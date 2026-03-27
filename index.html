@@ -4,22 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pickl-IQ — Pickleball Weather Planner</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Pickl-IQ" />
   <style>
     :root {
-      --green:  #22c55e;
-      --yellow: #eab308;
-      --orange: #f97316;
-      --red:    #ef4444;
-      --blue:   #3b82f6;
-      --bg:     #0f172a;
-      --card:   #1e293b;
-      --border: #334155;
-      --text:   #f1f5f9;
-      --muted:  #94a3b8;
+      --green:   #16a34a;
+      --green-bg:#f0fdf4;
+      --yellow:  #ca8a04;
+      --yel-bg:  #fefce8;
+      --orange:  #ea580c;
+      --ora-bg:  #fff7ed;
+      --red:     #dc2626;
+      --red-bg:  #fef2f2;
+      --blue:    #2563eb;
+      --blue-bg: #eff6ff;
+      --bg:      #f1f5f9;
+      --card:    #ffffff;
+      --border:  #e2e8f0;
+      --text:    #0f172a;
+      --muted:   #64748b;
+      --subtle:  #94a3b8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -27,660 +38,842 @@
 
     /* ── Header ── */
     header {
-      background: linear-gradient(135deg, #1d4ed8 0%, #0f172a 100%);
-      padding: 20px 24px 16px;
+      background: #fff;
       border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 58px; gap: 12px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
-    header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
-    header h1 span { color: #60a5fa; }
-    header p  { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
-
-    /* ── Main layout ── */
-    main { max-width: 960px; margin: 0 auto; padding: 20px 16px 40px; }
-
-    /* ── Court Tabs ── */
-    .court-tabs {
-      display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--blue); display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
     }
+    .logo-text h1 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text); }
+    .logo-text p  { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .hbtn {
+      border: 1px solid var(--border); background: #fff;
+      color: var(--text); border-radius: 8px; padding: 6px 12px;
+      font-size: 0.78rem; cursor: pointer; font-weight: 500;
+      display: flex; align-items: center; gap: 5px;
+      transition: background 0.15s;
+    }
+    .hbtn:hover { background: var(--bg); }
+    #status-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block;
+    }
+    #status-text { font-size: 0.72rem; color: var(--muted); }
+
+    /* ── Main ── */
+    main { max-width: 960px; margin: 0 auto; padding: 20px 16px 48px; }
+
+    /* ── Best day banner ── */
+    #best-day-banner {
+      background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+      border-radius: 14px; padding: 14px 20px;
+      margin-bottom: 18px; display: none; color: #fff;
+    }
+    #best-day-banner .bdlabel { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.8; margin-bottom: 4px; }
+    #best-day-banner .bdmain  { font-size: 1rem; font-weight: 700; }
+    #best-day-banner .bdsub   { font-size: 0.8rem; opacity: 0.85; margin-top: 3px; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--muted); font-weight: 600; margin-bottom: 10px;
+    }
+
+    /* ── Court tabs ── */
+    .court-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
     .court-tab {
-      flex: 1; min-width: 180px;
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: left;
+      flex: 1; min-width: 175px;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 13px 15px;
+      cursor: pointer; transition: all 0.18s; text-align: left;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    .court-tab:hover  { border-color: var(--blue); }
-    .court-tab.active { border-color: #3b82f6; background: #1e3a5f; }
-    .court-tab .name  { font-weight: 700; font-size: 0.95rem; }
-    .court-tab .meta  { font-size: 0.75rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
-    .court-tab .badge {
-      display: inline-block; font-size: 0.65rem; font-weight: 700;
-      padding: 2px 7px; border-radius: 20px; margin-top: 6px;
+    .court-tab:hover  { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
+    .court-tab.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); background: #fff; }
+    .court-tab .ct-name { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+    .court-tab .ct-meta { font-size: 0.72rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+    .ct-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .badge {
+      font-size: 0.62rem; font-weight: 700; padding: 2px 8px;
+      border-radius: 20px; white-space: nowrap;
     }
-    .badge-light  { background: #fef9c3; color: #713f12; }
-    .badge-nolight{ background: #fee2e2; color: #7f1d1d; }
-    .badge-covered{ background: #dcfce7; color: #14532d; }
+    .badge-nolight { background: #fee2e2; color: #991b1b; }
+    .badge-light   { background: #fef3c7; color: #92400e; }
+    .badge-cover   { background: #d1fae5; color: #065f46; }
 
-    /* ── Controls ── */
-    .controls {
-      display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;
+    /* ── Controls bar ── */
+    .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .btn {
+      border-radius: 9px; padding: 7px 14px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; border: 1.5px solid transparent;
+      display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s;
     }
-    .controls select, .controls button {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 0.85rem;
-      cursor: pointer;
+    .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-ghost { background: #fff; color: var(--text); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--bg); }
+
+    /* ── Players panel ── */
+    #players-panel {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 18px; margin-bottom: 18px; display: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    .controls button { background: var(--blue); border-color: var(--blue); font-weight: 600; }
-    .controls button:hover { background: #2563eb; }
-    #status { font-size: 0.8rem; color: var(--muted); }
+    .players-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .players-head h3 { font-size: 0.95rem; font-weight: 700; }
+    .player-add { display: flex; gap: 8px; margin-bottom: 14px; }
+    .player-add input {
+      flex: 1; background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text); border-radius: 9px; padding: 8px 13px; font-size: 0.85rem;
+    }
+    .player-add input:focus { outline: none; border-color: var(--blue); background: #fff; }
+    .player-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+    .player-chip {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 5px 12px 5px 8px;
+      font-size: 0.82rem; display: flex; align-items: center; gap: 7px;
+    }
+    .p-avatar {
+      width: 24px; height: 24px; border-radius: 50%; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
+    }
+    .p-remove { cursor: pointer; color: var(--muted); font-size: 0.85rem; margin-left: 2px; }
+    .p-remove:hover { color: var(--red); }
+    .no-players { color: var(--muted); font-size: 0.82rem; }
+
+    /* ── Legend ── */
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; font-size: 0.75rem; }
+    .legend-item { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+    .ldot { width: 9px; height: 9px; border-radius: 50%; }
 
     /* ── Forecast grid ── */
     .forecast-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 10px;
-      margin-bottom: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+      gap: 10px; margin-bottom: 22px;
     }
     .day-card {
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 10px;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 13px; padding: 12px 10px;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
-    .day-card:hover    { border-color: #60a5fa; transform: translateY(-2px); }
-    .day-card.selected { border-color: #3b82f6; background: #1e3a5f; }
-    .day-card .dow     { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-    .day-card .date    { font-size: 0.85rem; font-weight: 700; margin: 2px 0; }
-    .day-card .wicon   { font-size: 1.6rem; margin: 6px 0; }
-    .day-card .temps   { font-size: 0.75rem; color: var(--muted); }
-    .day-card .wind-sm { font-size: 0.7rem; margin-top: 4px; }
-    .day-card .rec-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      margin: 8px auto 0;
+    .day-card:hover    { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,0.12); }
+    .day-card.selected { border-color: var(--blue); background: var(--blue-bg); box-shadow: 0 0 0 3px var(--blue-bg); }
+    .dc-dow  { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+    .dc-date { font-size: 0.82rem; font-weight: 700; margin: 2px 0; }
+    .dc-icon { font-size: 1.5rem; margin: 5px 0; }
+    .dc-temp { font-size: 0.72rem; color: var(--muted); }
+    .dc-wind { font-size: 0.68rem; margin-top: 4px; font-weight: 600; }
+    /* ── Per-session pills on day cards ── */
+    .dc-sessions { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+    .dc-sess-pill {
+      font-size: 0.59rem; font-weight: 700; padding: 2px 6px;
+      border-radius: 5px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .dot-great  { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .dot-ok     { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
-    .dot-marg   { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
-    .dot-bad    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .sp-great { background:#dcfce7; color:#15803d; }
+    .sp-ok    { background:#fef9c3; color:#854d0e; }
+    .sp-windy { background:#ffedd5; color:#9a3412; }
+    .sp-bad   { background:#fee2e2; color:#991b1b; }
+    .sp-rain  { background:#eff6ff; color:#1d4ed8; }
+    .dc-no-sess { font-size:0.62rem; color:var(--muted); margin-top:8px; text-align:center; }
+    .day-card.not-playable { opacity:0.4; filter:grayscale(0.6); }
+    .day-card.not-playable .dc-date { color:var(--muted); }
 
     /* ── Detail panel ── */
     #detail-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      display: none;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 16px; padding: 22px; display: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
-    #detail-panel h2 { font-size: 1.1rem; margin-bottom: 16px; }
-    #detail-panel h2 span { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
+    #detail-panel h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; }
+    #detail-panel h2 span { color: var(--muted); font-weight: 500; font-size: 0.9rem; }
 
+    .day-summary { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .sum-badge {
+      background: var(--bg); border-radius: 10px; padding: 8px 13px;
+      border: 1px solid var(--border);
+    }
+    .sum-badge .lb { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+    .sum-badge .vl { font-size: 0.95rem; font-weight: 700; margin-top: 3px; }
+
+    /* ── Session block ── */
     .session-block {
-      background: #0f172a;
-      border-radius: 10px;
-      padding: 14px 16px;
+      background: var(--bg); border-radius: 12px;
+      border: 1px solid var(--border); padding: 16px;
       margin-bottom: 12px;
     }
     .session-block h3 {
-      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--muted); margin-bottom: 10px;
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--muted); font-weight: 700; margin-bottom: 12px;
     }
-    .hour-rows { display: flex; flex-direction: column; gap: 6px; }
+    .hour-rows { display: flex; flex-direction: column; gap: 5px; }
     .hour-row {
       display: grid;
-      grid-template-columns: 56px 34px 68px 110px 80px 70px 1fr;
-      gap: 8px;
-      align-items: center;
-      font-size: 0.8rem;
+      grid-template-columns: 58px 32px 76px 108px 54px 68px 1fr;
+      gap: 8px; align-items: center; font-size: 0.8rem;
+      padding: 5px 8px; border-radius: 8px; background: #fff;
+      border: 1px solid var(--border);
     }
-    .hour-row .time   { color: var(--muted); }
-    .hour-row .icon   { font-size: 1rem; text-align: center; }
-    .hour-row .temp   { }
-    .hour-row .wind   { }
-    .hour-row .dir    { color: var(--muted); font-size: 0.78rem; }
-    .hour-row .rain   { color: var(--blue); }
-    .wind-arrow { display: inline-block; font-size: 0.9rem; margin-right: 2px; }
+    .hr-time { color: var(--muted); font-size: 0.75rem; }
+    .hr-icon { font-size: 1rem; text-align: center; }
+    .hr-dir  { color: var(--muted); font-size: 0.75rem; }
+    .hr-rain { color: #2563eb; font-size: 0.78rem; }
+    .wind-arrow { margin-right: 2px; }
+
     .rec-pill {
-      display: inline-block; font-size: 0.68rem; font-weight: 700;
-      padding: 2px 10px; border-radius: 20px; text-align: center;
+      display: inline-block; font-size: 0.66rem; font-weight: 700;
+      padding: 2px 9px; border-radius: 20px; white-space: nowrap;
     }
-    .pill-great  { background: #14532d; color: #86efac; }
-    .pill-ok     { background: #713f12; color: #fde68a; }
-    .pill-windy  { background: #7c2d12; color: #fdba74; }
-    .pill-bad    { background: #450a0a; color: #fca5a5; }
-    .pill-closed { background: #1e293b; color: var(--muted); }
-    .pill-rain   { background: #1e3a5f; color: #93c5fd; }
+    .pill-great { background: var(--green-bg); color: var(--green); border: 1px solid #bbf7d0; }
+    .pill-ok    { background: var(--yel-bg);   color: var(--yellow); border: 1px solid #fde68a; }
+    .pill-windy { background: var(--ora-bg);   color: var(--orange); border: 1px solid #fed7aa; }
+    .pill-bad   { background: var(--red-bg);   color: var(--red);    border: 1px solid #fecaca; }
+    .pill-closed{ background: #f8fafc;         color: var(--muted);  border: 1px solid var(--border); }
+    .pill-rain  { background: var(--blue-bg);  color: var(--blue);   border: 1px solid #bfdbfe; }
 
-    .day-summary {
-      display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+    /* ── RSVP ── */
+    .rsvp-section {
+      margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--border);
     }
-    .sum-badge {
-      background: #0f172a; border-radius: 8px; padding: 8px 14px;
-      font-size: 0.8rem;
+    .rsvp-label {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--muted); font-weight: 700; margin-bottom: 10px;
     }
-    .sum-badge .label { color: var(--muted); font-size: 0.7rem; }
-    .sum-badge .value { font-size: 1rem; font-weight: 700; margin-top: 2px; }
+    .rsvp-rows { display: flex; flex-direction: column; gap: 6px; }
+    .rsvp-row  { display: flex; align-items: center; gap: 10px; }
+    .rsvp-name {
+      font-size: 0.82rem; font-weight: 600; min-width: 96px;
+      display: flex; align-items: center; gap: 7px; color: var(--text);
+    }
+    .r-avatar {
+      width: 26px; height: 26px; border-radius: 50%; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.66rem; font-weight: 700; flex-shrink: 0;
+    }
+    .rsvp-btns { display: flex; gap: 5px; }
+    .rsvp-btn {
+      border: 1.5px solid var(--border); background: #fff;
+      color: var(--muted); border-radius: 7px; padding: 3px 10px;
+      font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.14s;
+    }
+    .rsvp-btn:hover          { border-color: var(--blue); color: var(--text); }
+    .rsvp-btn.active-in    { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+    .rsvp-btn.active-maybe { background: var(--yel-bg);   border-color: var(--yellow); color: var(--yellow); }
+    .rsvp-btn.active-out   { background: var(--red-bg);   border-color: var(--red);   color: var(--red); }
+    .rsvp-summary { font-size: 0.75rem; color: var(--muted); margin-top: 9px; }
+    .rsvp-in    { color: var(--green); font-weight: 700; }
+    .rsvp-maybe { color: var(--yellow); font-weight: 700; }
 
-    /* ── Legend ── */
-    .legend {
-      display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;
-      font-size: 0.75rem; color: var(--muted);
+    /* ── Tips ── */
+    .tips-block {
+      background: #fff; border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 15px 18px; margin-top: 4px;
     }
-    .legend-item { display: flex; align-items: center; gap: 5px; }
-    .legend-dot  { width: 8px; height: 8px; border-radius: 50%; }
+    .tips-block .tips-title {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--muted); font-weight: 700; margin-bottom: 10px;
+    }
+    .tips-block p { font-size: 0.82rem; margin-bottom: 7px; line-height: 1.6; color: var(--text); }
+    .tips-block p:last-child { margin-bottom: 0; }
 
-    /* ── Loading ── */
-    .loading {
-      text-align: center; padding: 40px; color: var(--muted);
-    }
+    /* ── Loading/Error ── */
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
     .spinner {
       width: 32px; height: 32px;
-      border: 3px solid var(--border);
-      border-top-color: var(--blue);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin: 0 auto 12px;
+      border: 3px solid var(--border); border-top-color: var(--blue);
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .error-box {
-      background: #450a0a; border: 1px solid #991b1b; border-radius: 10px;
-      padding: 16px; color: #fca5a5; font-size: 0.85rem;
+      background: var(--red-bg); border: 1px solid #fecaca;
+      border-radius: 12px; padding: 16px; color: var(--red); font-size: 0.85rem;
     }
 
-    @media (max-width: 600px) {
-      .hour-row { grid-template-columns: 50px 28px 60px 100px 1fr; }
-      .hour-row .rain { display: none; }
-      .hour-row .dir  { display: none; }
-      .forecast-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1e3a5f; color: #bfdbfe;
+      border-radius: 10px; padding: 10px 20px; font-size: 0.82rem;
+      transition: transform 0.3s; z-index: 999; pointer-events: none;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 640px) {
+      header { padding: 0 14px; }
+      main { padding: 14px 12px 40px; }
+      .hour-row { grid-template-columns: 50px 26px 66px 96px 1fr; }
+      .hr-rain { display: none; }
+      .hr-dir  { display: none; }
+      .forecast-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+      .court-tab { min-width: 160px; }
     }
   </style>
 </head>
 <body>
 
+<!-- ── Header ── -->
 <header>
-  <h1>Pickl<span>-IQ</span> 🏓</h1>
-  <p>Pickleball weather planner — DFW Collin County courts</p>
+  <div class="logo">
+    <div class="logo-icon">🏓</div>
+    <div class="logo-text">
+      <h1>Pickl-IQ</h1>
+      <p>Murphy · Wylie Pickleball</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <span id="status-dot"></span>
+    <span id="status-text">Loading…</span>
+    <button class="hbtn" onclick="shareDay()">📤 Share</button>
+    <button class="hbtn" id="installBtn" style="display:none" onclick="installApp()">📲 Install</button>
+  </div>
 </header>
 
 <main>
-  <!-- Court Selector -->
-  <div class="court-tabs" id="courtTabs">
-    <div class="court-tab active" data-court="0" onclick="selectCourt(0)">
-      <div class="name">Otto Middle School</div>
-      <div class="meta">Murphy, TX · 8 courts (4 tennis→PB)<br>Slightly windier · Side covers only</div>
-      <span class="badge badge-nolight">No lights</span>
-      <span class="badge badge-covered" style="margin-left:4px">Side covers</span>
+
+  <!-- Best day banner -->
+  <div id="best-day-banner">
+    <div class="bdlabel">🏆 Best play window coming up</div>
+    <div class="bdmain" id="bdmain">—</div>
+    <div class="bdsub"  id="bdsub">—</div>
+  </div>
+
+  <!-- Courts -->
+  <div class="section-label">Select Court</div>
+  <div class="court-tabs">
+    <div class="court-tab active" onclick="selectCourt(0)">
+      <div class="ct-name">Otto Middle School</div>
+      <div class="ct-meta">Murphy, TX · 8 courts (4 tennis→PB)<br>Slightly windier · Side covers only</div>
+      <div class="ct-badges">
+        <span class="badge badge-nolight">No lights</span>
+        <span class="badge badge-cover">Side covers</span>
+      </div>
     </div>
-    <div class="court-tab" data-court="1" onclick="selectCourt(1)">
-      <div class="name">Maxwell Creek Park</div>
-      <div class="meta">Murphy, TX 75094 · 2 dedicated PB courts<br>Side covers only · Lights until 11 PM</div>
-      <span class="badge badge-light">Lights till 11 PM</span>
-      <span class="badge badge-covered" style="margin-left:4px">Side covers</span>
+    <div class="court-tab" onclick="selectCourt(1)">
+      <div class="ct-name">Maxwell Creek Park</div>
+      <div class="ct-meta">Murphy, TX · 2 dedicated PB courts<br>Side covers only · Lights till 11 PM</div>
+      <div class="ct-badges">
+        <span class="badge badge-light">Lights till 11 PM</span>
+        <span class="badge badge-cover">Side covers</span>
+      </div>
     </div>
-    <div class="court-tab" data-court="2" onclick="selectCourt(2)">
-      <div class="name">Wylie Community Courts</div>
-      <div class="meta">Wylie, TX 75098 · 6 courts · Fully covered<br>(sides + top) · Lights until 10 PM</div>
-      <span class="badge badge-light">Lights till 10 PM</span>
-      <span class="badge badge-covered" style="margin-left:4px">Full cover</span>
+    <div class="court-tab" onclick="selectCourt(2)">
+      <div class="ct-name">Wylie Community Courts</div>
+      <div class="ct-meta">Wylie, TX · 6 courts · Full cover<br>Sides + top · Lights till 10 PM</div>
+      <div class="ct-badges">
+        <span class="badge badge-light">Lights till 10 PM</span>
+        <span class="badge badge-cover">Full cover</span>
+      </div>
     </div>
   </div>
 
   <!-- Controls -->
   <div class="controls">
-    <button onclick="loadWeather()">⟳ Refresh Forecast</button>
-    <span id="status">Loading weather…</span>
+    <button class="btn btn-primary" onclick="loadWeather()">⟳ Refresh</button>
+    <button class="btn btn-ghost" onclick="togglePlayers()">👥 Manage Players</button>
+  </div>
+
+  <!-- Players -->
+  <div id="players-panel">
+    <div class="players-head">
+      <h3>👥 Squad Roster</h3>
+      <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem" onclick="togglePlayers()">Done</button>
+    </div>
+    <div class="player-add">
+      <input type="text" id="playerInput" placeholder="Enter player name and press Enter…" maxlength="24"
+        onkeydown="if(event.key==='Enter') addPlayer()" />
+      <button class="btn btn-primary" onclick="addPlayer()">Add</button>
+    </div>
+    <div class="player-list" id="playerList"></div>
   </div>
 
   <!-- Legend -->
   <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Great play</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Borderline (~12-16 mph)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Marginal (windy/heat)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Don't play</div>
+    <span class="legend-item"><span class="ldot" style="background:var(--green)"></span> Great conditions</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--yellow)"></span> Borderline (12–16 mph)</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Marginal</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--red)"></span> Don't play</span>
   </div>
 
-  <!-- 14-day forecast grid -->
+  <!-- 14-day grid -->
+  <div class="section-label">14-Day Forecast — tap a day for details</div>
   <div id="forecastContainer">
     <div class="loading"><div class="spinner"></div>Fetching forecast…</div>
   </div>
 
-  <!-- Hourly detail -->
+  <!-- Detail -->
   <div id="detail-panel"></div>
+
 </main>
+<div id="toast"></div>
 
 <script>
-// ── Court definitions ──────────────────────────────────────────────────────
+// ── Courts ────────────────────────────────────────────────────────────────
 const COURTS = [
-  {
-    name: 'Otto Middle School',
-    city: 'Murphy, TX',
-    lat: 33.0151, lon: -96.6113,
-    hasLights: false,
-    lightsUntil: null,
-    covered: false,  // side covers only, no top
-    windFactor: 1.1,  // slightly windier
-    // Play windows: weekends 7:30-9:30 AM and 5 PM – sunset; weekdays Mon/Wed 5–7 PM max sunset
-    sessions: (date, sunrise, sunset) => buildSessions(date, sunrise, sunset, false),
-  },
-  {
-    name: 'Maxwell Creek Park',
-    city: 'Murphy, TX',
-    lat: 33.0094, lon: -96.6058,
-    hasLights: true,
-    lightsUntil: 23, // 11 PM
-    covered: false,  // side covers only, no top
-    windFactor: 1.0,
-    sessions: (date, sunrise, sunset) => buildSessions(date, sunrise, sunset, true, 23),
-  },
-  {
-    name: 'Wylie Community Courts',
-    city: 'Wylie, TX',
-    lat: 33.0151, lon: -96.5388,
-    hasLights: true,
-    lightsUntil: 22, // 10 PM
-    covered: true,
-    windFactor: 1.0,
-    sessions: (date, sunrise, sunset) => buildSessions(date, sunrise, sunset, true, 22),
-  },
+  { name:'Otto Middle School',    city:'Murphy, TX',   lat:33.0151, lon:-96.6113, hasLights:false, lightsUntil:null, covered:false, windFactor:1.1 },
+  { name:'Maxwell Creek Park',    city:'Murphy, TX',   lat:33.0094, lon:-96.6058, hasLights:true,  lightsUntil:23,   covered:false, windFactor:1.0 },
+  { name:'Wylie Community Courts',city:'Wylie, TX',    lat:33.0151, lon:-96.5388, hasLights:true,  lightsUntil:22,   covered:true,  windFactor:1.0 },
 ];
+let selectedCourt = 0, weatherData = null, selectedDayIdx = 0;
 
-let selectedCourt = 0;
-let weatherData = null;
-let selectedDayIdx = 0;
-
-// ── Session builder ────────────────────────────────────────────────────────
-function buildSessions(date, sunrise, sunset, hasLights, lightsUntil = null) {
-  const dow = date.getDay(); // 0=Sun,1=Mon,...,6=Sat
-  const isWeekend = dow === 0 || dow === 6;
-  const isMon = dow === 1;
-  const isWed = dow === 3;
+// ── Sessions ──────────────────────────────────────────────────────────────
+function buildSessions(date, sunset) {
+  const court = COURTS[selectedCourt];
+  const dow = date.getDay();
+  const isWE = dow===0||dow===6, isMon=dow===1, isWed=dow===3;
+  const sunsetHr = Math.floor(sunset/60);
+  const closeHr  = court.hasLights ? (court.lightsUntil||sunsetHr) : sunsetHr;
   const sessions = [];
-  const sunsetHour = Math.floor(sunset / 60);
-  const playableEvening = hasLights ? (lightsUntil || sunsetHour) : sunsetHour;
-
-  if (isWeekend) {
-    sessions.push({ label: 'Morning Session', start: 7, end: 10 });
-    if (playableEvening >= 19) {
-      sessions.push({ label: 'Evening Session', start: 17, end: playableEvening });
-    } else if (playableEvening >= 17) {
-      sessions.push({ label: 'Evening Session', start: 17, end: playableEvening });
-    }
+  if (isWE) {
+    sessions.push({ label:'Morning Session', start:7, end:10 });
+    if (closeHr >= 17) sessions.push({ label:'Evening Session', start:17, end:Math.min(closeHr,21) });
   }
-  if (isMon || isWed) {
-    if (playableEvening >= 18) {
-      sessions.push({ label: `Weekday Session (${dow === 1 ? 'Mon' : 'Wed'})`, start: 17, end: Math.min(playableEvening, 19) });
-    }
+  if (isMon||isWed) {
+    if (closeHr >= 18) sessions.push({ label:`Weekday Session (${isMon?'Mon':'Wed'})`, start:17, end:Math.min(closeHr,19) });
   }
   return sessions;
 }
 
-// ── WMO weather code mappings ──────────────────────────────────────────────
+// ── WMO ───────────────────────────────────────────────────────────────────
 const WMO = {
-  0:  { label: 'Clear',          icon: '☀️',  rain: false },
-  1:  { label: 'Mainly Clear',   icon: '🌤️', rain: false },
-  2:  { label: 'Partly Cloudy',  icon: '⛅',  rain: false },
-  3:  { label: 'Overcast',       icon: '☁️',  rain: false },
-  45: { label: 'Foggy',          icon: '🌫️', rain: false },
-  48: { label: 'Foggy',          icon: '🌫️', rain: false },
-  51: { label: 'Light Drizzle',  icon: '🌦️', rain: true  },
-  53: { label: 'Drizzle',        icon: '🌦️', rain: true  },
-  55: { label: 'Heavy Drizzle',  icon: '🌧️', rain: true  },
-  61: { label: 'Light Rain',     icon: '🌧️', rain: true  },
-  63: { label: 'Rain',           icon: '🌧️', rain: true  },
-  65: { label: 'Heavy Rain',     icon: '🌧️', rain: true  },
-  71: { label: 'Light Snow',     icon: '🌨️', rain: true  },
-  73: { label: 'Snow',           icon: '❄️',  rain: true  },
-  75: { label: 'Heavy Snow',     icon: '❄️',  rain: true  },
-  80: { label: 'Showers',        icon: '🌦️', rain: true  },
-  81: { label: 'Showers',        icon: '🌧️', rain: true  },
-  82: { label: 'Heavy Showers',  icon: '⛈️', rain: true  },
-  95: { label: 'Thunderstorm',   icon: '⛈️', rain: true  },
-  96: { label: 'T-storm + Hail', icon: '⛈️', rain: true  },
-  99: { label: 'T-storm + Hail', icon: '⛈️', rain: true  },
+  0:{label:'Clear',icon:'☀️',rain:false},1:{label:'Mainly Clear',icon:'🌤️',rain:false},
+  2:{label:'Partly Cloudy',icon:'⛅',rain:false},3:{label:'Overcast',icon:'☁️',rain:false},
+  45:{label:'Foggy',icon:'🌫️',rain:false},48:{label:'Foggy',icon:'🌫️',rain:false},
+  51:{label:'Light Drizzle',icon:'🌦️',rain:true},53:{label:'Drizzle',icon:'🌦️',rain:true},
+  55:{label:'Heavy Drizzle',icon:'🌧️',rain:true},61:{label:'Light Rain',icon:'🌧️',rain:true},
+  63:{label:'Rain',icon:'🌧️',rain:true},65:{label:'Heavy Rain',icon:'🌧️',rain:true},
+  71:{label:'Light Snow',icon:'🌨️',rain:true},73:{label:'Snow',icon:'❄️',rain:true},
+  75:{label:'Heavy Snow',icon:'❄️',rain:true},80:{label:'Showers',icon:'🌦️',rain:true},
+  81:{label:'Showers',icon:'🌧️',rain:true},82:{label:'Heavy Showers',icon:'⛈️',rain:true},
+  95:{label:'Thunderstorm',icon:'⛈️',rain:true},96:{label:'T-storm+Hail',icon:'⛈️',rain:true},
+  99:{label:'T-storm+Hail',icon:'⛈️',rain:true},
 };
-function wmo(code) { return WMO[code] || { label: 'Unknown', icon: '❓', rain: false }; }
+function wmo(c){return WMO[c]||{label:'Unknown',icon:'❓',rain:false};}
 
-// ── Play condition scoring ─────────────────────────────────────────────────
-function scoreHour(temp, wind, gust, precipProb, wmoCode, windFactor = 1.0) {
-  const effWind = wind * windFactor;
-  const effGust = gust * windFactor;
-  const w = wmo(wmoCode);
-
-  if (w.rain && precipProb > 30) return 'rain';
-  if (precipProb > 50) return 'rain';
-  if (wmoCode >= 95) return 'rain';
-
-  if (effGust > 28 || effWind > 20) return 'bad';
-  if (temp > 105 || temp < 35)       return 'bad';
-
-  if (effGust > 22 || effWind > 16) return 'windy';
-  if (temp > 100 || temp < 42)       return 'windy';
-
-  if (effWind > 12 || effGust > 18) return 'ok';
-  if (temp > 95 || temp < 48)        return 'ok';
-
+// ── Score ─────────────────────────────────────────────────────────────────
+function scoreHour(temp,wind,gust,pp,code,wf=1) {
+  const ew=wind*wf, eg=gust*wf, w=wmo(code);
+  if((w.rain&&pp>30)||pp>50||code>=95) return 'rain';
+  if(eg>28||ew>20||temp>105||temp<35) return 'bad';
+  if(eg>22||ew>16||temp>100||temp<42) return 'windy';
+  if(ew>12||eg>18||temp>95 ||temp<48) return 'ok';
   return 'great';
 }
-
-function dayScore(hours) {
-  const scores = hours.map(h => h.score);
-  if (scores.every(s => s === 'bad' || s === 'rain')) return 'bad';
-  if (scores.some(s => s === 'rain')) return 'marg';
-  if (scores.every(s => s === 'great')) return 'great';
-  if (scores.filter(s => s === 'ok' || s === 'great').length >= scores.length / 2) return 'ok';
-  return 'marg';
+function dayScore(hours){
+  const s=hours.map(h=>h.score);
+  if(s.every(x=>x==='bad'||x==='rain'))return'bad';
+  if(s.some(x=>x==='rain'))return'marg';
+  if(s.every(x=>x==='great'))return'great';
+  if(s.filter(x=>x==='ok'||x==='great').length>=s.length/2)return'ok';
+  return'marg';
 }
-
-const PILL = {
-  great: '<span class="rec-pill pill-great">Great</span>',
-  ok:    '<span class="rec-pill pill-ok">Borderline</span>',
-  windy: '<span class="rec-pill pill-windy">Too Windy</span>',
-  rain:  '<span class="rec-pill pill-rain">Rain / Wet</span>',
-  bad:   '<span class="rec-pill pill-bad">Don\'t Play</span>',
-  closed:'<span class="rec-pill pill-closed">Closed / Dark</span>',
+const SCORE_RANK={great:3,ok:2,marg:1,bad:0};
+const PILL={
+  great:'<span class="rec-pill pill-great">✓ Great</span>',
+  ok:   '<span class="rec-pill pill-ok">~ Borderline</span>',
+  windy:'<span class="rec-pill pill-windy">💨 Too Windy</span>',
+  rain: '<span class="rec-pill pill-rain">🌧 Rain/Wet</span>',
+  bad:  '<span class="rec-pill pill-bad">✗ Don\'t Play</span>',
+  closed:'<span class="rec-pill pill-closed">Dark/Closed</span>',
 };
 
-// ── Fetch weather ──────────────────────────────────────────────────────────
+// ── Weather fetch ─────────────────────────────────────────────────────────
 async function loadWeather() {
-  document.getElementById('status').textContent = 'Loading…';
-  document.getElementById('forecastContainer').innerHTML =
-    '<div class="loading"><div class="spinner"></div>Fetching 14-day forecast…</div>';
-  document.getElementById('detail-panel').style.display = 'none';
-
-  const court = COURTS[selectedCourt];
-  const url = `https://api.open-meteo.com/v1/forecast` +
-    `?latitude=${court.lat}&longitude=${court.lon}` +
-    `&hourly=temperature_2m,precipitation_probability,weathercode,windspeed_10m,windgusts_10m,winddirection_10m` +
-    `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,windgusts_10m_max,sunrise,sunset` +
-    `&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=14`;
-
+  setStatus('Loading…', false);
+  document.getElementById('forecastContainer').innerHTML='<div class="loading"><div class="spinner"></div>Fetching 14-day forecast…</div>';
+  document.getElementById('detail-panel').style.display='none';
+  document.getElementById('best-day-banner').style.display='none';
+  const c=COURTS[selectedCourt];
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}`
+    +`&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,windspeed_10m,windgusts_10m,winddirection_10m`
+    +`&daily=weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,windspeed_10m_max,windgusts_10m_max,sunrise,sunset`
+    +`&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=14`;
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('API error ' + res.status);
-    weatherData = await res.json();
+    const res=await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    weatherData=await res.json();
     renderForecast();
-    document.getElementById('status').textContent =
-      `Updated ${new Date().toLocaleTimeString()} · ${court.city}`;
-  } catch (e) {
-    document.getElementById('forecastContainer').innerHTML =
-      `<div class="error-box">Could not fetch weather data. Check your connection.<br><small>${e.message}</small></div>`;
-    document.getElementById('status').textContent = 'Error loading data';
+    renderBestDay();
+    setStatus(`Updated ${new Date().toLocaleTimeString()} · ${c.city}`, true);
+  } catch(e) {
+    document.getElementById('forecastContainer').innerHTML=`<div class="error-box">⚠️ Could not load weather data. Check your connection.<br><small>${e.message}</small></div>`;
+    setStatus('Error loading data', false);
   }
 }
 
-// ── Parse sunrise/sunset (ISO string → minutes since midnight) ─────────────
-function parseTime(isoStr) {
-  const d = new Date(isoStr);
-  return d.getHours() * 60 + d.getMinutes();
+function setStatus(msg, ok) {
+  document.getElementById('status-text').textContent = msg;
+  document.getElementById('status-dot').style.background = ok ? 'var(--green)' : 'var(--muted)';
 }
 
-// ── Render 14-day grid ─────────────────────────────────────────────────────
-function renderForecast() {
-  const d  = weatherData.daily;
-  const h  = weatherData.hourly;
-  const court = COURTS[selectedCourt];
-  const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function parseTime(iso) {
+  const d=new Date(iso); return d.getHours()*60+d.getMinutes();
+}
 
-  let html = '<div class="forecast-grid">';
+// ── Best day ──────────────────────────────────────────────────────────────
+function renderBestDay() {
+  const d=weatherData.daily, h=weatherData.hourly;
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let best={score:-1,dayIdx:-1,sess:null};
 
-  for (let i = 0; i < d.time.length; i++) {
-    const date    = new Date(d.time[i] + 'T12:00:00');
-    const dow     = DOW[date.getDay()];
-    const sunrise = parseTime(d.sunrise[i]);
-    const sunset  = parseTime(d.sunset[i]);
-
-    // Get hourly indices for this day
-    const dayStart = i * 24;
-    const sessions = court.sessions(date, sunrise, sunset);
-
-    // Score all session hours
-    const playHours = [];
-    for (const sess of sessions) {
-      for (let hr = sess.start; hr < sess.end; hr++) {
-        const idx = dayStart + hr;
-        playHours.push({
-          hour: hr,
-          temp:  h.temperature_2m[idx],
-          wind:  h.windspeed_10m[idx],
-          gust:  h.windgusts_10m[idx],
-          precip: h.precipitation_probability[idx],
-          code:  h.weathercode[idx],
-          score: scoreHour(
-            h.temperature_2m[idx],
-            h.windspeed_10m[idx],
-            h.windgusts_10m[idx],
-            h.precipitation_probability[idx],
-            h.weathercode[idx],
-            court.windFactor
-          ),
-        });
+  for(let i=0;i<d.time.length;i++){
+    const date=new Date(d.time[i]+'T12:00:00');
+    const sunset=parseTime(d.sunset[i]);
+    const sessions=buildSessions(date,sunset);
+    const dayStart=i*24;
+    for(const sess of sessions){
+      let sc=0;
+      for(let hr=sess.start;hr<sess.end;hr++){
+        const idx=dayStart+hr, c=COURTS[selectedCourt];
+        sc+=SCORE_RANK[scoreHour(h.temperature_2m[idx],h.windspeed_10m[idx],h.windgusts_10m[idx],h.precipitation_probability[idx],h.weathercode[idx],c.windFactor)]||0;
       }
+      if(sc>best.score){best={score:sc,dayIdx:i,sess};}
+    }
+  }
+  if(best.dayIdx<0)return;
+  const date=new Date(d.time[best.dayIdx]+'T12:00:00');
+  const c=COURTS[selectedCourt];
+  const wind=Math.round(d.windspeed_10m_max[best.dayIdx]*c.windFactor);
+  const temp=Math.round(d.temperature_2m_max[best.dayIdx]);
+  const lbl=best.dayIdx===0?'Today':`${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()}`;
+  document.getElementById('bdmain').textContent=`${lbl} · ${best.sess.label} at ${c.name}`;
+  document.getElementById('bdsub').textContent=`${wmo(d.weathercode[best.dayIdx]).icon} ${wind} mph wind · ${temp}°F · ${formatHour(best.sess.start)}–${formatHour(best.sess.end)}`;
+  document.getElementById('best-day-banner').style.display='block';
+}
+
+// ── Forecast grid ─────────────────────────────────────────────────────────
+function renderForecast() {
+  const d=weatherData.daily, h=weatherData.hourly;
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const c=COURTS[selectedCourt];
+  let html='<div class="forecast-grid">';
+  for(let i=0;i<d.time.length;i++){
+    const date=new Date(d.time[i]+'T12:00:00');
+    const sunset=parseTime(d.sunset[i]);
+    const sessions=buildSessions(date,sunset);
+    const dayStart=i*24;
+    const ph=[];
+    for(const sess of sessions)
+      for(let hr=sess.start;hr<sess.end;hr++){
+        const idx=dayStart+hr;
+        ph.push({score:scoreHour(h.temperature_2m[idx],h.windspeed_10m[idx],h.windgusts_10m[idx],h.precipitation_probability[idx],h.weathercode[idx],c.windFactor)});
+      }
+    const overall=ph.length===0?'bad':dayScore(ph);
+    const dotCls={great:'dot-great',ok:'dot-ok',marg:'dot-marg',bad:'dot-bad'}[overall]||'dot-bad';
+    const sel=i===selectedDayIdx?'selected':'';
+    const maxW=Math.round(d.windspeed_10m_max[i]*c.windFactor);
+
+    // Per-session scores for this day
+    const sessScores = sessions.map(sess => ({
+      sess, score: sessionScore(sess, dayStart, h, c)
+    }));
+    const notPlayable = sessions.length > 0 &&
+      sessScores.every(s => s.score === 'bad' || s.score === 'rain');
+
+    let sessHtml = '';
+    if (sessions.length === 0) {
+      sessHtml = '<div class="dc-no-sess">No sessions</div>';
+    } else if (notPlayable) {
+      sessHtml = '<div class="dc-sessions"><div class="dc-sess-pill sp-bad">Not playable</div></div>';
+    } else {
+      sessHtml = '<div class="dc-sessions">' + sessScores.map(({sess, score}) => {
+        const cls = {great:'sp-great',ok:'sp-ok',windy:'sp-windy',bad:'sp-bad',rain:'sp-rain'}[score]||'sp-bad';
+        const lbl = {great:'✓ Great',ok:'~ OK',windy:'💨 Windy',bad:'✗ Bad',rain:'🌧 Rain'}[score]||score;
+        return `<div class="dc-sess-pill ${cls}">${sessAbbr(sess.label)}: ${lbl}</div>`;
+      }).join('') + '</div>';
     }
 
-    const overallScore = playHours.length === 0 ? 'bad' : dayScore(playHours);
-    const dotClass = { great:'dot-great', ok:'dot-ok', marg:'dot-marg', bad:'dot-bad' }[overallScore] || 'dot-bad';
-    const isSelected = i === selectedDayIdx ? 'selected' : '';
-    const isToday = i === 0 ? ' (Today)' : '';
-
-    html += `
-      <div class="day-card ${isSelected}" onclick="showDetail(${i})" id="day-${i}">
-        <div class="dow">${dow}${isToday ? ' •' : ''}</div>
-        <div class="date">${MON[date.getMonth()]} ${date.getDate()}</div>
-        <div class="wicon">${wmo(d.weathercode[i]).icon}</div>
-        <div class="temps">${Math.round(d.temperature_2m_max[i])}° / ${Math.round(d.temperature_2m_min[i])}°F</div>
-        <div class="wind-sm" style="color:${windColor(d.windspeed_10m_max[i] * court.windFactor)}">
-          💨 ${Math.round(d.windspeed_10m_max[i])} mph
-        </div>
-        <div class="rec-dot ${dotClass}"></div>
+    html+=`
+      <div class="day-card ${sel}${notPlayable?' not-playable':''}" onclick="showDetail(${i})" id="day-${i}">
+        <div class="dc-dow">${DOW[date.getDay()]}${i===0?' ·':''}</div>
+        <div class="dc-date">${MON[date.getMonth()]} ${date.getDate()}</div>
+        <div class="dc-icon">${wmo(d.weathercode[i]).icon}</div>
+        <div class="dc-temp">${Math.round(d.temperature_2m_max[i])}° / ${Math.round(d.temperature_2m_min[i])}°F</div>
+        <div class="dc-wind" style="color:${wc(maxW)}">💨 ${maxW} mph</div>
+        ${sessHtml}
       </div>`;
   }
-
-  html += '</div>';
-  document.getElementById('forecastContainer').innerHTML = html;
-
-  // Auto-show today
+  html+='</div>';
+  document.getElementById('forecastContainer').innerHTML=html;
   showDetail(0);
 }
 
-function windColor(wind) {
-  if (wind <= 12) return '#22c55e';
-  if (wind <= 16) return '#eab308';
-  if (wind <= 20) return '#f97316';
-  return '#ef4444';
-}
+function wc(w){return w<=12?'var(--green)':w<=16?'var(--yellow)':w<=20?'var(--orange)':'var(--red)';}
 
-// ── Show hourly detail for a day ───────────────────────────────────────────
-function showDetail(dayIdx) {
-  selectedDayIdx = dayIdx;
+// ── Detail ────────────────────────────────────────────────────────────────
+function showDetail(dayIdx){
+  selectedDayIdx=dayIdx;
+  document.querySelectorAll('.day-card').forEach((el,i)=>el.classList.toggle('selected',i===dayIdx));
+  const d=weatherData.daily, h=weatherData.hourly, c=COURTS[selectedCourt];
+  const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const date=new Date(d.time[dayIdx]+'T12:00:00');
+  const dateStr=d.time[dayIdx];
+  const sunset=parseTime(d.sunset[dayIdx]);
+  const dayStart=dayIdx*24;
+  const sessions=buildSessions(date,sunset);
+  const panel=document.getElementById('detail-panel');
+  panel.style.display='block';
+  const maxW=Math.round(d.windspeed_10m_max[dayIdx]*c.windFactor);
+  const maxG=Math.round(d.windgusts_10m_max[dayIdx]*c.windFactor);
+  const feelHi=Math.round(d.apparent_temperature_max[dayIdx]);
+  const precip=(d.precipitation_sum[dayIdx]||0).toFixed(1);
 
-  // Update selected card styling
-  document.querySelectorAll('.day-card').forEach((el, i) => {
-    el.classList.toggle('selected', i === dayIdx);
-  });
-
-  const d  = weatherData.daily;
-  const h  = weatherData.hourly;
-  const court = COURTS[selectedCourt];
-  const DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-  const date    = new Date(d.time[dayIdx] + 'T12:00:00');
-  const dow     = DOW[date.getDay()];
-  const sunrise = parseTime(d.sunrise[dayIdx]);
-  const sunset  = parseTime(d.sunset[dayIdx]);
-  const dayStart = dayIdx * 24;
-  const sessions = court.sessions(date, sunrise, sunset);
-  const sunsetH = `${Math.floor(sunset/60)}:${String(sunset%60).padStart(2,'0')}`;
-
-  const panel = document.getElementById('detail-panel');
-  panel.style.display = 'block';
-
-  // Day summary badges
-  const maxWind = Math.round(d.windspeed_10m_max[dayIdx] * court.windFactor);
-  const maxGust = Math.round(d.windgusts_10m_max[dayIdx] * court.windFactor);
-  const precip  = d.precipitation_sum[dayIdx]?.toFixed(1) || '0.0';
-
-  let html = `
-    <h2>${dow}, ${MON[date.getMonth()]} ${date.getDate()}
-      <span> — ${court.name}</span>
+  let html=`
+    <h2>${DOW[date.getDay()]}, ${MON[date.getMonth()]} ${date.getDate()}
+      <span> — ${c.name}</span>
     </h2>
     <div class="day-summary">
-      <div class="sum-badge">
-        <div class="label">Condition</div>
-        <div class="value">${wmo(d.weathercode[dayIdx]).icon} ${wmo(d.weathercode[dayIdx]).label}</div>
-      </div>
-      <div class="sum-badge">
-        <div class="label">High / Low</div>
-        <div class="value">${Math.round(d.temperature_2m_max[dayIdx])}° / ${Math.round(d.temperature_2m_min[dayIdx])}°F</div>
-      </div>
-      <div class="sum-badge">
-        <div class="label">Max Wind</div>
-        <div class="value" style="color:${windColor(maxWind)}">${maxWind} mph</div>
-      </div>
-      <div class="sum-badge">
-        <div class="label">Max Gust</div>
-        <div class="value" style="color:${windColor(maxGust)}">${maxGust} mph</div>
-      </div>
-      <div class="sum-badge">
-        <div class="label">Precip</div>
-        <div class="value">${precip}" rain</div>
-      </div>
-      <div class="sum-badge">
-        <div class="label">Sunset</div>
-        <div class="value">${formatHour(Math.floor(sunset/60), sunset%60)}</div>
-      </div>
+      <div class="sum-badge"><div class="lb">Sky</div><div class="vl">${wmo(d.weathercode[dayIdx]).icon} ${wmo(d.weathercode[dayIdx]).label}</div></div>
+      <div class="sum-badge"><div class="lb">High / Low</div><div class="vl">${Math.round(d.temperature_2m_max[dayIdx])}° / ${Math.round(d.temperature_2m_min[dayIdx])}°F</div></div>
+      <div class="sum-badge"><div class="lb">Feels Like</div><div class="vl">${feelHi}°F</div></div>
+      <div class="sum-badge"><div class="lb">Max Wind</div><div class="vl" style="color:${wc(maxW)}">${maxW} mph</div></div>
+      <div class="sum-badge"><div class="lb">Max Gust</div><div class="vl" style="color:${wc(maxG)}">${maxG} mph</div></div>
+      <div class="sum-badge"><div class="lb">Rain</div><div class="vl">${precip}"</div></div>
+      <div class="sum-badge"><div class="lb">Sunset</div><div class="vl">${formatHour(Math.floor(sunset/60),sunset%60)}</div></div>
     </div>`;
 
-  if (sessions.length === 0) {
-    html += `<div class="session-block" style="color:var(--muted);text-align:center;padding:24px">
-      No typical play sessions on this day (${dow.substring(0,3)}).<br>
+  if(sessions.length===0){
+    html+=`<div class="session-block" style="text-align:center;padding:24px;color:var(--muted)">
+      No typical sessions on ${DOW[date.getDay()].substring(0,3)}.<br>
       <small>Your group plays Mon/Wed evenings and weekends.</small>
     </div>`;
   }
 
-  for (const sess of sessions) {
-    html += `<div class="session-block">
+  for(const sess of sessions){
+    html+=`<div class="session-block">
       <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end)}</h3>
       <div class="hour-rows">
-        <div class="hour-row" style="color:var(--muted);font-size:0.7rem;margin-bottom:2px">
-          <span>Time</span><span>Sky</span><span>Temp</span><span>Wind / Gust</span><span>Rain%</span><span>Dir</span><span>Play?</span>
+        <div class="hour-row" style="background:transparent;border-color:transparent;font-size:0.67rem;color:var(--muted);font-weight:600">
+          <span>Time</span><span>Sky</span><span>Temp/Feel</span><span>Wind / Gust</span><span>Rain%</span><span>Dir</span><span>Play?</span>
         </div>`;
 
-    for (let hr = sess.start; hr < sess.end; hr++) {
-      const idx   = dayStart + hr;
-      const temp  = h.temperature_2m[idx];
-      const wind  = Math.round(h.windspeed_10m[idx] * court.windFactor);
-      const gust  = Math.round(h.windgusts_10m[idx] * court.windFactor);
-      const dir   = h.winddirection_10m[idx];
-      const pp    = h.precipitation_probability[idx] || 0;
-      const code  = h.weathercode[idx];
-      const score = scoreHour(temp, wind/court.windFactor, gust/court.windFactor, pp, code, court.windFactor);
-
-      // Check if court is closed (no lights, after sunset)
-      const afterSunset = hr >= Math.ceil(sunset / 60);
-      const afterClose  = court.hasLights && hr >= court.lightsUntil;
-      const isClosed    = (!court.hasLights && afterSunset) || afterClose;
-
-      const pill = isClosed ? PILL.closed : (
-        score === 'great' ? PILL.great :
-        score === 'ok'    ? PILL.ok    :
-        score === 'windy' ? PILL.windy :
-        score === 'rain'  ? PILL.rain  :
-        PILL.bad
-      );
-
-      html += `
+    for(let hr=sess.start;hr<sess.end;hr++){
+      const idx=dayStart+hr;
+      const temp=h.temperature_2m[idx];
+      const feel=h.apparent_temperature[idx];
+      const wind=Math.round(h.windspeed_10m[idx]*c.windFactor);
+      const gust=Math.round(h.windgusts_10m[idx]*c.windFactor);
+      const dir =h.winddirection_10m[idx];
+      const pp  =h.precipitation_probability[idx]||0;
+      const code=h.weathercode[idx];
+      const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor);
+      const afterSunset=hr>=Math.ceil(sunset/60);
+      const afterClose =c.hasLights&&hr>=(c.lightsUntil||99);
+      const isClosed   =(!c.hasLights&&afterSunset)||afterClose;
+      const pill=isClosed?PILL.closed:
+        score==='great'?PILL.great:score==='ok'?PILL.ok:
+        score==='windy'?PILL.windy:score==='rain'?PILL.rain:PILL.bad;
+      const feelStr=Math.round(feel)!==Math.round(temp)
+        ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
+      html+=`
         <div class="hour-row">
-          <span class="time">${formatHour(hr)}</span>
-          <span class="icon">${wmo(code).icon}</span>
-          <span class="temp">${Math.round(temp)}°F</span>
-          <span class="wind" style="color:${windColor(wind)}">${wind} <span style="color:var(--muted);font-size:0.72rem">/ ${gust}g</span></span>
-          <span class="rain">${pp}%</span>
-          <span class="dir"><span class="wind-arrow">${windArrow(dir)}</span>${windDir(dir)}</span>
+          <span class="hr-time">${formatHour(hr)}</span>
+          <span class="hr-icon">${wmo(code).icon}</span>
+          <span>${Math.round(temp)}°F${feelStr}</span>
+          <span style="color:${wc(wind)};font-weight:600">${wind} <span style="color:var(--muted);font-weight:400;font-size:0.72rem">/ ${gust}g</span></span>
+          <span class="hr-rain">${pp}%</span>
+          <span class="hr-dir"><span class="wind-arrow">${windArrow(dir)}</span>${windDir(dir)}</span>
           <span>${pill}</span>
         </div>`;
     }
-
-    html += `</div></div>`;
+    html+=`</div>${renderRsvp(dateStr,sess.label)}</div>`;
   }
-
-  // Tip section
-  html += buildTips(dayIdx, sessions, court);
-
-  panel.innerHTML = html;
-  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  html+=buildTips(dayIdx,sessions,c);
+  panel.innerHTML=html;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-// ── Tips based on conditions ───────────────────────────────────────────────
-function buildTips(dayIdx, sessions, court) {
-  const d = weatherData.daily;
-  const maxWind = Math.round(d.windspeed_10m_max[dayIdx] * court.windFactor);
-  const maxGust = Math.round(d.windgusts_10m_max[dayIdx] * court.windFactor);
-  const precip  = d.precipitation_sum[dayIdx] || 0;
-  const code    = d.weathercode[dayIdx];
-  const tips    = [];
-
-  if (maxWind > 16 && maxWind <= 20)
-    tips.push('⚠️ Wind is above ideal today. Serve into the wind and keep shots low. Dink cross-court more.');
-  if (maxGust > 22)
-    tips.push('🚫 High gusts expected — ball control will be very difficult. Consider skipping or playing extra casual.');
-  if (precip > 0.1 || wmo(code).rain) {
-    if (court.name.includes('Wylie'))
-      tips.push('🌧️ Rain expected, but Wylie courts have a full top cover — you may still be able to play if it\'s light rain. Check courts before heading out.');
-    else
-      tips.push('🌧️ Wet courts likely. Otto and Maxwell Creek only have side covers — rain will reach the court surface. Wylie (full top cover) is your best bet today.');
+// ── Tips ──────────────────────────────────────────────────────────────────
+function buildTips(dayIdx,sessions,c){
+  const d=weatherData.daily;
+  const maxW=Math.round(d.windspeed_10m_max[dayIdx]*c.windFactor);
+  const maxG=Math.round(d.windgusts_10m_max[dayIdx]*c.windFactor);
+  const precip=d.precipitation_sum[dayIdx]||0;
+  const code=d.weathercode[dayIdx];
+  const tips=[];
+  if(maxW<=12&&!wmo(code).rain) tips.push('✅ Conditions look great! Perfect day to bring new players or sharpen technique.');
+  if(maxW>16&&maxW<=20) tips.push('⚠️ Wind above ideal. Serve into the wind, keep shots low, and dink cross-court more.');
+  if(maxG>22) tips.push('🚫 High gusts expected — ball control will be difficult. Consider skipping or playing casually.');
+  if(precip>0.1||wmo(code).rain){
+    if(c.name.includes('Wylie')) tips.push('🌧️ Rain expected. Wylie\'s full top cover means light rain may still be playable — check before heading out.');
+    else tips.push('🌧️ Wet courts likely. Otto & Maxwell Creek have side covers only — Wylie (full top cover) is your best bet today.');
   }
-  if (maxWind <= 12 && !wmo(code).rain)
-    tips.push('✅ Conditions look great! Ideal day to bring out new players or work on technique.');
-  if (court.name.includes('Otto') && maxWind > 10)
-    tips.push('💨 Otto tends to be windier — consider Maxwell Creek or Wylie if wind is a concern.');
+  if(c.name.includes('Otto')&&maxW>10) tips.push('💨 Otto tends to be windier — Maxwell Creek or Wylie may be more comfortable today.');
+  if(tips.length===0)return'';
+  return`<div class="tips-block"><div class="tips-title">Tips for Today</div>${tips.map(t=>`<p>${t}</p>`).join('')}</div>`;
+}
 
-  if (tips.length === 0) return '';
-  return `<div style="background:#0f172a;border-radius:10px;padding:14px 16px;margin-top:4px">
-    <h3 style="font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px">Tips for Today</h3>
-    ${tips.map(t => `<p style="font-size:0.82rem;margin-bottom:8px;line-height:1.5">${t}</p>`).join('')}
+// ── RSVP ─────────────────────────────────────────────────────────────────
+function getPlayers(){return JSON.parse(localStorage.getItem('pickl-players')||'[]');}
+function savePlayers(a){localStorage.setItem('pickl-players',JSON.stringify(a));}
+function addPlayer(){
+  const el=document.getElementById('playerInput');
+  const name=el.value.trim(); if(!name)return;
+  const p=getPlayers(); if(p.includes(name)){el.value='';return;}
+  p.push(name); savePlayers(p); el.value='';
+  renderPlayers();
+  if(weatherData)showDetail(selectedDayIdx);
+}
+function removePlayer(name){
+  savePlayers(getPlayers().filter(p=>p!==name));
+  renderPlayers();
+  if(weatherData)showDetail(selectedDayIdx);
+}
+function togglePlayers(){
+  const panel=document.getElementById('players-panel');
+  const vis=panel.style.display==='block';
+  panel.style.display=vis?'none':'block';
+  if(!vis){renderPlayers();document.getElementById('playerInput').focus();}
+}
+function renderPlayers(){
+  const p=getPlayers();
+  const list=document.getElementById('playerList');
+  if(p.length===0){list.innerHTML='<span class="no-players">No players yet — add your group above.</span>';return;}
+  list.innerHTML=p.map(name=>`
+    <div class="player-chip">
+      <div class="p-avatar" style="background:${aColor(name)}">${initials(name)}</div>
+      ${name}
+      <span class="p-remove" onclick="removePlayer('${name.replace(/'/g,"\\'")}')">✕</span>
+    </div>`).join('');
+}
+function rsvpKey(ds,sl){return`pickl-rsvp-${ds}-${sl}`;}
+function getRsvp(ds,sl){return JSON.parse(localStorage.getItem(rsvpKey(ds,sl))||'{}');}
+function setRsvpVal(ds,sl,name,status){
+  const r=getRsvp(ds,sl); r[name]=status;
+  localStorage.setItem(rsvpKey(ds,sl),JSON.stringify(r));
+}
+function doRsvp(ds,sl,name,status){
+  setRsvpVal(ds,decodeURIComponent(sl),name,status);
+  showDetail(selectedDayIdx);
+}
+function renderRsvp(dateStr,sessLabel){
+  const players=getPlayers();
+  if(players.length===0)return'';
+  const rsvp=getRsvp(dateStr,sessLabel);
+  const inN=players.filter(p=>rsvp[p]==='in').length;
+  const mayN=players.filter(p=>rsvp[p]==='maybe').length;
+  const outN=players.filter(p=>rsvp[p]==='out').length;
+  const sl=encodeURIComponent(sessLabel);
+  const rows=players.map(name=>{
+    const st=rsvp[name]||'';
+    const sn=name.replace(/'/g,"\\'");
+    return`<div class="rsvp-row">
+      <div class="rsvp-name"><div class="r-avatar" style="background:${aColor(name)}">${initials(name)}</div>${name}</div>
+      <div class="rsvp-btns">
+        <button class="rsvp-btn ${st==='in'?'active-in':''}"    onclick="doRsvp('${dateStr}','${sl}','${sn}','in')">✓ In</button>
+        <button class="rsvp-btn ${st==='maybe'?'active-maybe':''}" onclick="doRsvp('${dateStr}','${sl}','${sn}','maybe')">? Maybe</button>
+        <button class="rsvp-btn ${st==='out'?'active-out':''}"   onclick="doRsvp('${dateStr}','${sl}','${sn}','out')">✗ Out</button>
+      </div>
+    </div>`;
+  }).join('');
+  const summary=(inN+mayN+outN)>0
+    ?`<div class="rsvp-summary"><span class="rsvp-in">${inN} in</span> · <span class="rsvp-maybe">${mayN} maybe</span> · ${outN} out</div>`
+    :'';
+  return`<div class="rsvp-section">
+    <div class="rsvp-label">Who's playing?</div>
+    <div class="rsvp-rows">${rows}</div>${summary}
   </div>`;
 }
 
-// ── Wind direction ─────────────────────────────────────────────────────────
-function windDir(deg) {
-  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-  return dirs[Math.round(deg / 22.5) % 16];
+// ── Session score (per session, more granular than dayScore) ──────────────
+function sessionScore(sess, dayStart, h, c) {
+  const scores = [];
+  for (let hr = sess.start; hr < sess.end; hr++) {
+    const idx = dayStart + hr;
+    scores.push(scoreHour(
+      h.temperature_2m[idx], h.windspeed_10m[idx], h.windgusts_10m[idx],
+      h.precipitation_probability[idx], h.weathercode[idx], c.windFactor
+    ));
+  }
+  if (scores.length === 0) return 'bad';
+  if (scores.every(s => s === 'rain')) return 'rain';
+  if (scores.every(s => s === 'bad' || s === 'rain')) return 'bad';
+  if (scores.every(s => s === 'great')) return 'great';
+  if (scores.filter(s => s === 'great' || s === 'ok').length >= scores.length / 2) return 'ok';
+  if (scores.some(s => s === 'windy' || s === 'bad')) return 'windy';
+  return 'windy';
 }
-// Arrow points the direction wind is coming FROM (meteorological convention)
-function windArrow(deg) {
-  // Arrow points into the wind (where it's blowing toward)
-  const arrows = ['↓','↙','←','↖','↑','↗','→','↘'];
-  return arrows[Math.round(deg / 45) % 8];
+function sessAbbr(label) {
+  if (label.includes('Morning')) return '🌅 Morn';
+  if (label.includes('Evening')) return '🌇 Eve';
+  if (label.includes('Mon')) return '📅 Mon';
+  if (label.includes('Wed')) return '📅 Wed';
+  return label.substring(0, 6);
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-function formatHour(h, m = 0) {
-  const ampm = h < 12 ? 'AM' : 'PM';
-  const hr   = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return m ? `${hr}:${String(m).padStart(2,'0')} ${ampm}` : `${hr}:00 ${ampm}`;
+// ── Wind helpers ──────────────────────────────────────────────────────────
+function windDir(d){const D=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return D[Math.round(d/22.5)%16];}
+function windArrow(d){const A=['↓','↙','←','↖','↑','↗','→','↘'];return A[Math.round(d/45)%8];}
+
+// ── Avatar ────────────────────────────────────────────────────────────────
+function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);}
+const ACOLORS=['#2563eb','#7c3aed','#db2777','#d97706','#059669','#dc2626','#0891b2','#ea580c'];
+function aColor(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))%ACOLORS.length;return ACOLORS[Math.abs(h)];}
+
+// ── Format ────────────────────────────────────────────────────────────────
+function formatHour(h,m=0){
+  const ampm=h<12?'AM':'PM', hr=h===0?12:h>12?h-12:h;
+  return m?`${hr}:${String(m).padStart(2,'0')} ${ampm}`:`${hr}:00 ${ampm}`;
 }
 
-function selectCourt(idx) {
-  selectedCourt = idx;
-  document.querySelectorAll('.court-tab').forEach((el, i) => {
-    el.classList.toggle('active', i === idx);
-  });
+// ── Share ─────────────────────────────────────────────────────────────────
+function shareDay(){
+  if(!weatherData)return;
+  const d=weatherData.daily, c=COURTS[selectedCourt];
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const date=new Date(d.time[selectedDayIdx]+'T12:00:00');
+  const maxW=Math.round(d.windspeed_10m_max[selectedDayIdx]*c.windFactor);
+  const maxG=Math.round(d.windgusts_10m_max[selectedDayIdx]*c.windFactor);
+  const hi=Math.round(d.temperature_2m_max[selectedDayIdx]);
+  const lo=Math.round(d.temperature_2m_min[selectedDayIdx]);
+  const rec=maxW<=12&&!wmo(d.weathercode[selectedDayIdx]).rain?'✅ Great conditions!':maxW<=16?'⚠️ Borderline wind':'🚫 Too windy/rainy';
+  const text=`🏓 Pickl-IQ Forecast\n${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()} · ${c.name}\n${wmo(d.weathercode[selectedDayIdx]).icon} ${wmo(d.weathercode[selectedDayIdx]).label}\n🌡 ${hi}°/${lo}°F  💨 Wind: ${maxW} mph  Gust: ${maxG} mph\n${rec}\nhttps://nadeemkhawaja.github.io/Picklikng`;
+  if(navigator.share){navigator.share({title:'Pickl-IQ Forecast',text});}
+  else{navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));}
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── Court switch ──────────────────────────────────────────────────────────
+function selectCourt(idx){
+  selectedCourt=idx;
+  document.querySelectorAll('.court-tab').forEach((el,i)=>el.classList.toggle('active',i===idx));
   loadWeather();
 }
 
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── PWA install ───────────────────────────────────────────────────────────
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installBtn').style.display='inline-flex';
+});
+function installApp(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('installBtn').style.display='none';});
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
 loadWeather();
 </script>
 </body>
