@@ -667,18 +667,20 @@ function renderBestDay() {
   const c=COURTS[selectedCourt];
   const dayStart=best.dayIdx*24;
   // Use session's own wind max — not the daily max which may be a different time of day
-  let sessMaxWind=0, sessAvgTemp=0, sessHours=0;
+  let sessMinWind=999, sessMaxWind=0, sessAvgTemp=0, sessHours=0;
   for(let hr=best.sess.start;hr<best.sess.end;hr++){
     const idx=dayStart+hr;
     const w=Math.round(h.windspeed_10m[idx]*c.windFactor);
+    if(w<sessMinWind) sessMinWind=w;
     if(w>sessMaxWind) sessMaxWind=w;
     sessAvgTemp+=h.temperature_2m[idx];
     sessHours++;
   }
   const sessTemp=Math.round(sessAvgTemp/sessHours);
+  const windRange=sessMinWind===sessMaxWind?`${sessMaxWind} mph`:`${sessMinWind}–${sessMaxWind} mph`;
   const lbl=best.dayIdx===0?'Today':`${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()}`;
   document.getElementById('bdmain').textContent=`${lbl} · ${best.sess.label} at ${c.name}`;
-  document.getElementById('bdsub').textContent=`${wmo(d.weathercode[best.dayIdx]).icon} ${sessMaxWind} mph wind · ${sessTemp}°F · ${formatHour(best.sess.start)}–${formatHour(best.sess.end)}`;
+  document.getElementById('bdsub').textContent=`${wmo(d.weathercode[best.dayIdx]).icon} ${windRange} wind · ${sessTemp}°F · ${formatHour(best.sess.start)}–${formatHour(best.sess.end)}`;
   document.getElementById('best-day-banner').style.display='block';
 }
 
