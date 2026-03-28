@@ -358,13 +358,75 @@
     body.dark .dc-no-sess  { color:#475569; }
 
     @media (max-width: 640px) {
-      header { padding: 0 14px; }
-      main { padding: 14px 12px 40px; }
-      .hour-row { grid-template-columns: 50px 26px 66px 96px 1fr; }
+      /* Header */
+      header { padding: 0 12px; height: 52px; }
+      .logo-text p { display: none; }
+      #status-text { display: none; }
+      .hbtn { padding: 5px 9px; font-size: 0.72rem; }
+
+      /* Main */
+      main { padding: 12px 10px 40px; }
+
+      /* Court tabs — horizontal scroll */
+      .court-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 6px;
+        gap: 8px;
+      }
+      .court-tabs::-webkit-scrollbar { display: none; }
+      .court-tab {
+        min-width: 210px;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+      }
+
+      /* Day cards */
+      .forecast-grid {
+        grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+        gap: 6px;
+      }
+      .day-card { padding: 9px 7px; }
+      .dc-dow  { font-size: 0.6rem; }
+      .dc-date { font-size: 0.78rem; }
+      .dc-icon { font-size: 1.25rem; margin: 3px 0; }
+      .dc-temp { font-size: 0.65rem; }
+      .dc-wind { font-size: 0.62rem; }
+      .dc-sess-pill { font-size: 0.56rem; padding: 1px 4px; }
+      .dc-no-sess { font-size: 0.58rem; }
+
+      /* Detail hour rows — 5 cols, hide rain% and dir */
+      .hour-row {
+        grid-template-columns: 46px 24px 62px 84px 1fr;
+        gap: 5px; font-size: 0.76rem; padding: 5px 7px;
+      }
       .hr-rain { display: none; }
       .hr-dir  { display: none; }
-      .forecast-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
-      .court-tab { min-width: 160px; }
+
+      /* Day summary badges — smaller */
+      .day-summary { gap: 7px; }
+      .sum-badge { padding: 6px 10px; }
+      .sum-badge .vl { font-size: 0.85rem; }
+      .sum-badge .lb { font-size: 0.6rem; }
+
+      /* RSVP — wrap buttons below name */
+      .rsvp-row { flex-wrap: wrap; }
+      .rsvp-name { min-width: unset; width: 100%; }
+      .rsvp-btn { padding: 3px 10px; font-size: 0.7rem; }
+
+      /* Best day banner */
+      #best-day-banner { padding: 12px 14px; }
+      #best-day-banner .bdmain { font-size: 0.9rem; }
+
+      /* Controls */
+      .controls { gap: 7px; }
+      .btn { padding: 6px 12px; font-size: 0.78rem; }
+
+      /* Detail panel */
+      #detail-panel { padding: 16px 12px; }
+      #detail-panel h2 { font-size: 0.95rem; }
     }
   </style>
 </head>
@@ -546,7 +608,7 @@ async function loadWeather() {
   const url=`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}`
     +`&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,windspeed_10m,windgusts_10m,winddirection_10m`
     +`&daily=weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,windspeed_10m_max,windgusts_10m_max,sunrise,sunset`
-    +`&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=14`;
+    +`&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=10`;
   try {
     const res=await fetch(url);
     if(!res.ok) throw new Error('HTTP '+res.status);
