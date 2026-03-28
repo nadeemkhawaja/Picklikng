@@ -741,6 +741,8 @@ function renderForecast() {
 }
 
 function wc(w){return w<=5?'#059669':w<=10?'var(--green)':w<=15?'var(--yellow)':w<=20?'var(--orange)':'var(--red)';}
+// Gust has its own thresholds — high gusts dominate playability even with calm wind
+function gc(g){return g<=8?'#059669':g<=15?'var(--green)':g<=22?'var(--yellow)':g<=28?'var(--orange)':'var(--red)';}
 
 // ── Detail ────────────────────────────────────────────────────────────────
 function showDetail(dayIdx){
@@ -813,7 +815,7 @@ function showDetail(dayIdx){
           <span class="hr-time">${formatHour(hr)}</span>
           <span class="hr-icon">${wmo(code).icon}</span>
           <span>${Math.round(temp)}°F${feelStr}</span>
-          <span style="color:${wc(wind)};font-weight:600">${wind} <span style="color:var(--muted);font-weight:400;font-size:0.72rem">/ ${gust}</span></span>
+          <span style="font-weight:600"><span style="color:${wc(wind)}">${wind}</span><span style="color:var(--muted);font-weight:400;font-size:0.72rem"> / </span><span style="color:${gc(gust)};font-size:0.72rem">${gust}</span></span>
           <span class="hr-rain">${pp}%</span>
           <span class="hr-dir"><span class="wind-arrow">${windArrow(dir)}</span>${windDir(dir)}</span>
           <span>${pill}</span>
