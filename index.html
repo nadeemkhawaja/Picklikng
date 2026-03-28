@@ -503,21 +503,6 @@
   <!-- Controls -->
   <div class="controls">
     <button class="btn btn-primary" onclick="loadWeather()">⟳ Refresh</button>
-    <button class="btn btn-ghost" onclick="togglePlayers()">👥 Manage Players</button>
-  </div>
-
-  <!-- Players -->
-  <div id="players-panel">
-    <div class="players-head">
-      <h3>👥 Squad Roster</h3>
-      <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.75rem" onclick="togglePlayers()">Done</button>
-    </div>
-    <div class="player-add">
-      <input type="text" id="playerInput" placeholder="Enter player name and press Enter…" maxlength="24"
-        onkeydown="if(event.key==='Enter') addPlayer()" />
-      <button class="btn btn-primary" onclick="addPlayer()">Add</button>
-    </div>
-    <div class="player-list" id="playerList"></div>
   </div>
 
   <!-- Legend -->
@@ -530,7 +515,7 @@
   </div>
 
   <!-- 10-day grid -->
-  <div class="section-label">14-Day Forecast — tap a day for details</div>
+  <div class="section-label">10-Day Forecast — tap a day for details</div>
   <div id="forecastContainer">
     <div class="loading"><div class="spinner"></div>Fetching forecast…</div>
   </div>
@@ -612,8 +597,8 @@ const SCORE_RANK={perfect:4,great:3,ok:2,marg:1,windy:1,bad:0,rain:0};
 const PILL={
   perfect:'<span class="rec-pill pill-perfect">⭐ Perfect</span>',
   great:  '<span class="rec-pill pill-great">✓ Great</span>',
-  ok:     '<span class="rec-pill pill-ok">~ OK (10–15 mph)</span>',
-  windy:  '<span class="rec-pill pill-windy">💨 Windy (15–20)</span>',
+  ok:     '<span class="rec-pill pill-ok">~ OK</span>',
+  windy:  '<span class="rec-pill pill-windy">💨 Windy</span>',
   rain:   '<span class="rec-pill pill-rain">🌧 Rain/Wet</span>',
   bad:    '<span class="rec-pill pill-bad">✗ Too Windy/Bad</span>',
   closed: '<span class="rec-pill pill-closed">Dark/Closed</span>',
@@ -665,9 +650,13 @@ function renderBestDay() {
     const sessions=buildSessions(date,sunset);
     const dayStart=i*24;
     for(const sess of sessions){
+      const c=COURTS[selectedCourt];
+      // Only consider sessions that are at least 'ok' — skip windy/bad/rain days
+      const sessOverall=sessionScore(sess,dayStart,h,c);
+      if(SCORE_RANK[sessOverall]<2) continue;
       let sc=0;
       for(let hr=sess.start;hr<sess.end;hr++){
-        const idx=dayStart+hr, c=COURTS[selectedCourt];
+        const idx=dayStart+hr;
         sc+=SCORE_RANK[scoreHour(h.temperature_2m[idx],h.windspeed_10m[idx],h.windgusts_10m[idx],h.precipitation_probability[idx],h.weathercode[idx],c.windFactor)]||0;
       }
       if(sc>best.score){best={score:sc,dayIdx:i,sess};}
@@ -815,13 +804,13 @@ function showDetail(dayIdx){
           <span class="hr-time">${formatHour(hr)}</span>
           <span class="hr-icon">${wmo(code).icon}</span>
           <span>${Math.round(temp)}°F${feelStr}</span>
-          <span style="color:${wc(wind)};font-weight:600">${wind} <span style="color:var(--muted);font-weight:400;font-size:0.72rem">/ ${gust}g</span></span>
+          <span style="color:${wc(wind)};font-weight:600">${wind} <span style="color:var(--muted);font-weight:400;font-size:0.72rem">/ ${gust}</span></span>
           <span class="hr-rain">${pp}%</span>
           <span class="hr-dir"><span class="wind-arrow">${windArrow(dir)}</span>${windDir(dir)}</span>
           <span>${pill}</span>
         </div>`;
     }
-    html+=`</div>${renderRsvp(dateStr,sess.label)}</div>`;
+    html+=`</div></div>`;
   }
   html+=buildTips(dayIdx,sessions,c);
   panel.innerHTML=html;
@@ -846,91 +835,6 @@ function buildTips(dayIdx,sessions,c){
   if(c.name.includes('Otto')&&maxW>10) tips.push('💨 Otto tends to be windier — Maxwell Creek or Wylie may be more comfortable today.');
   if(tips.length===0)return'';
   return`<div class="tips-block"><div class="tips-title">Tips for Today</div>${tips.map(t=>`<p>${t}</p>`).join('')}</div>`;
-}
-
-// ── RSVP ─────────────────────────────────────────────────────────────────
-// Default squad roster (pre-populated from group)
-const DEFAULT_PLAYERS = [
-  'Arafath Khan','Khalid Hussain','Aamir Waheed','Anwer Muhammed',
-  'Bilal Musavvir','Faisal Khan','Jawed Lashari','Khalid Khan',
-  'Mohammad Naveed','Nadeem Parvez','Navaid Rafiq','Salim','Shahzad Ikhlas',
-  'Aboo Becker','Abu','Adeel Shibli','Ali','Altaf','Amir Gul',
-  'Arafath Iman','Asim Naeem','Faizan Shekha','Ibrahim Khaleel',
-  'Md Yousuf','Mohamed Arif Hanifa','Shabeer Usman','Shahin','Shaik','Waris Hussain'
-];
-function getPlayers(){
-  const saved = localStorage.getItem('pickl-players');
-  if (saved === null) { savePlayers(DEFAULT_PLAYERS); return DEFAULT_PLAYERS; }
-  return JSON.parse(saved);
-}
-function savePlayers(a){localStorage.setItem('pickl-players',JSON.stringify(a));}
-function addPlayer(){
-  const el=document.getElementById('playerInput');
-  const name=el.value.trim(); if(!name)return;
-  const p=getPlayers(); if(p.includes(name)){el.value='';return;}
-  p.push(name); savePlayers(p); el.value='';
-  renderPlayers();
-  if(weatherData)showDetail(selectedDayIdx);
-}
-function removePlayer(name){
-  savePlayers(getPlayers().filter(p=>p!==name));
-  renderPlayers();
-  if(weatherData)showDetail(selectedDayIdx);
-}
-function togglePlayers(){
-  const panel=document.getElementById('players-panel');
-  const vis=panel.style.display==='block';
-  panel.style.display=vis?'none':'block';
-  if(!vis){renderPlayers();document.getElementById('playerInput').focus();}
-}
-function renderPlayers(){
-  const p=getPlayers();
-  const list=document.getElementById('playerList');
-  if(p.length===0){list.innerHTML='<span class="no-players">No players yet — add your group above.</span>';return;}
-  list.innerHTML=p.map(name=>`
-    <div class="player-chip">
-      <div class="p-avatar" style="background:${aColor(name)}">${initials(name)}</div>
-      ${name}
-      <span class="p-remove" onclick="removePlayer('${name.replace(/'/g,"\\'")}')">✕</span>
-    </div>`).join('');
-}
-function rsvpKey(ds,sl){return`pickl-rsvp-${ds}-${sl}`;}
-function getRsvp(ds,sl){return JSON.parse(localStorage.getItem(rsvpKey(ds,sl))||'{}');}
-function setRsvpVal(ds,sl,name,status){
-  const r=getRsvp(ds,sl); r[name]=status;
-  localStorage.setItem(rsvpKey(ds,sl),JSON.stringify(r));
-}
-function doRsvp(ds,sl,name,status){
-  setRsvpVal(ds,decodeURIComponent(sl),name,status);
-  showDetail(selectedDayIdx);
-}
-function renderRsvp(dateStr,sessLabel){
-  const players=getPlayers();
-  if(players.length===0)return'';
-  const rsvp=getRsvp(dateStr,sessLabel);
-  const inN=players.filter(p=>rsvp[p]==='in').length;
-  const mayN=players.filter(p=>rsvp[p]==='maybe').length;
-  const outN=players.filter(p=>rsvp[p]==='out').length;
-  const sl=encodeURIComponent(sessLabel);
-  const rows=players.map(name=>{
-    const st=rsvp[name]||'';
-    const sn=name.replace(/'/g,"\\'");
-    return`<div class="rsvp-row">
-      <div class="rsvp-name"><div class="r-avatar" style="background:${aColor(name)}">${initials(name)}</div>${name}</div>
-      <div class="rsvp-btns">
-        <button class="rsvp-btn ${st==='in'?'active-in':''}"    onclick="doRsvp('${dateStr}','${sl}','${sn}','in')">✓ In</button>
-        <button class="rsvp-btn ${st==='maybe'?'active-maybe':''}" onclick="doRsvp('${dateStr}','${sl}','${sn}','maybe')">? Maybe</button>
-        <button class="rsvp-btn ${st==='out'?'active-out':''}"   onclick="doRsvp('${dateStr}','${sl}','${sn}','out')">✗ Out</button>
-      </div>
-    </div>`;
-  }).join('');
-  const summary=(inN+mayN+outN)>0
-    ?`<div class="rsvp-summary"><span class="rsvp-in">${inN} in</span> · <span class="rsvp-maybe">${mayN} maybe</span> · ${outN} out</div>`
-    :'';
-  return`<div class="rsvp-section">
-    <div class="rsvp-label">Who's playing?</div>
-    <div class="rsvp-rows">${rows}</div>${summary}
-  </div>`;
 }
 
 // ── Session score (per session, more granular than dayScore) ──────────────
