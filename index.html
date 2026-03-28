@@ -101,6 +101,11 @@
     .court-tab .ct-name { font-weight: 700; font-size: 0.9rem; color: var(--text); }
     .court-tab .ct-meta { font-size: 0.72rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
     .ct-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .ct-map {
+      display: inline-block; margin-top: 8px; font-size: 0.72rem;
+      color: var(--blue); text-decoration: none; font-weight: 600;
+    }
+    .ct-map:hover { text-decoration: underline; }
     .badge {
       font-size: 0.62rem; font-weight: 700; padding: 2px 8px;
       border-radius: 20px; white-space: nowrap;
@@ -356,6 +361,10 @@
     body.dark .pill-rain   { background:#0c1a2e; color:#93c5fd; border-color:#1d4ed8; }
     body.dark .pill-closed { background:#1e293b; color:#64748b; border-color:#334155; }
     body.dark .dc-no-sess  { color:#475569; }
+    .sp-perfect { background:#bbf7d0; color:#065f46; }
+    .pill-perfect { background:#ecfdf5; color:#065f46; border:1px solid #6ee7b7; }
+    body.dark .sp-perfect   { background:#022c22; color:#6ee7b7; }
+    body.dark .pill-perfect { background:#022c22; color:#6ee7b7; border-color:#065f46; }
 
     @media (max-width: 640px) {
       /* Header */
@@ -469,6 +478,7 @@
         <span class="badge badge-nolight">No lights</span>
         <span class="badge badge-cover">Side covers</span>
       </div>
+      <a class="ct-map" href="https://maps.google.com/?q=Otto+Middle+School+Murphy+TX+75094" target="_blank" onclick="event.stopPropagation()">📍 Google Maps</a>
     </div>
     <div class="court-tab" onclick="selectCourt(1)">
       <div class="ct-name">Maxwell Creek Park</div>
@@ -477,6 +487,7 @@
         <span class="badge badge-light">Lights till 11 PM</span>
         <span class="badge badge-cover">Side covers</span>
       </div>
+      <a class="ct-map" href="https://maps.google.com/?q=Maxwell+Creek+Park+Murphy+TX+75094" target="_blank" onclick="event.stopPropagation()">📍 Google Maps</a>
     </div>
     <div class="court-tab" onclick="selectCourt(2)">
       <div class="ct-name">Wylie Community Courts</div>
@@ -485,6 +496,7 @@
         <span class="badge badge-light">Lights till 10 PM</span>
         <span class="badge badge-cover">Full cover</span>
       </div>
+      <a class="ct-map" href="https://maps.google.com/?q=Community+Park+Pickleball+Wylie+TX+75098" target="_blank" onclick="event.stopPropagation()">📍 Google Maps</a>
     </div>
   </div>
 
@@ -510,13 +522,14 @@
 
   <!-- Legend -->
   <div class="legend">
-    <span class="legend-item"><span class="ldot" style="background:var(--green)"></span> Great conditions</span>
-    <span class="legend-item"><span class="ldot" style="background:var(--yellow)"></span> Borderline (12–16 mph)</span>
-    <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Marginal</span>
-    <span class="legend-item"><span class="ldot" style="background:var(--red)"></span> Don't play</span>
+    <span class="legend-item"><span class="ldot" style="background:#059669"></span> Perfect (&lt;5 mph)</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--green)"></span> Great (5–10 mph)</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--yellow)"></span> OK (10–15 mph)</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Windy (15–20 mph)</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--red)"></span> Too Windy / Rain</span>
   </div>
 
-  <!-- 14-day grid -->
+  <!-- 10-day grid -->
   <div class="section-label">14-Day Forecast — tap a day for details</div>
   <div id="forecastContainer">
     <div class="loading"><div class="spinner"></div>Fetching forecast…</div>
@@ -574,34 +587,42 @@ function wmo(c){return WMO[c]||{label:'Unknown',icon:'❓',rain:false};}
 // ── Score ─────────────────────────────────────────────────────────────────
 function scoreHour(temp,wind,gust,pp,code,wf=1) {
   const ew=wind*wf, eg=gust*wf, w=wmo(code);
+  // Rain
   if((w.rain&&pp>30)||pp>50||code>=95) return 'rain';
-  if(eg>28||ew>20||temp>105||temp<35) return 'bad';
-  if(eg>22||ew>16||temp>100||temp<42) return 'windy';
-  if(ew>12||eg>18||temp>95 ||temp<48) return 'ok';
-  return 'great';
+  // Temperature extremes
+  if(temp>105||temp<35) return 'bad';
+  if(temp>100||temp<42) return 'windy';
+  // Wind (user thresholds: <5 perfect, <10 great, <15 ok, <20 windy, 20+ bad)
+  if(eg>28||ew>20) return 'bad';
+  if(eg>22||ew>15) return 'windy';
+  if(eg>15||ew>10) return 'ok';
+  if(eg>8 ||ew>5)  return 'great';
+  return 'perfect';
 }
 function dayScore(hours){
   const s=hours.map(h=>h.score);
   if(s.every(x=>x==='bad'||x==='rain'))return'bad';
   if(s.some(x=>x==='rain'))return'marg';
-  if(s.every(x=>x==='great'))return'great';
-  if(s.filter(x=>x==='ok'||x==='great').length>=s.length/2)return'ok';
+  if(s.every(x=>x==='perfect'))return'perfect';
+  if(s.every(x=>x==='perfect'||x==='great'))return'great';
+  if(s.filter(x=>x==='perfect'||x==='great'||x==='ok').length>=s.length/2)return'ok';
   return'marg';
 }
-const SCORE_RANK={great:3,ok:2,marg:1,bad:0};
+const SCORE_RANK={perfect:4,great:3,ok:2,marg:1,windy:1,bad:0,rain:0};
 const PILL={
-  great:'<span class="rec-pill pill-great">✓ Great</span>',
-  ok:   '<span class="rec-pill pill-ok">~ Borderline</span>',
-  windy:'<span class="rec-pill pill-windy">💨 Too Windy</span>',
-  rain: '<span class="rec-pill pill-rain">🌧 Rain/Wet</span>',
-  bad:  '<span class="rec-pill pill-bad">✗ Don\'t Play</span>',
-  closed:'<span class="rec-pill pill-closed">Dark/Closed</span>',
+  perfect:'<span class="rec-pill pill-perfect">⭐ Perfect</span>',
+  great:  '<span class="rec-pill pill-great">✓ Great</span>',
+  ok:     '<span class="rec-pill pill-ok">~ OK (10–15 mph)</span>',
+  windy:  '<span class="rec-pill pill-windy">💨 Windy (15–20)</span>',
+  rain:   '<span class="rec-pill pill-rain">🌧 Rain/Wet</span>',
+  bad:    '<span class="rec-pill pill-bad">✗ Too Windy/Bad</span>',
+  closed: '<span class="rec-pill pill-closed">Dark/Closed</span>',
 };
 
 // ── Weather fetch ─────────────────────────────────────────────────────────
 async function loadWeather() {
   setStatus('Loading…', false);
-  document.getElementById('forecastContainer').innerHTML='<div class="loading"><div class="spinner"></div>Fetching 14-day forecast…</div>';
+  document.getElementById('forecastContainer').innerHTML='<div class="loading"><div class="spinner"></div>Fetching 10-day forecast…</div>';
   document.getElementById('detail-panel').style.display='none';
   document.getElementById('best-day-banner').style.display='none';
   const c=COURTS[selectedCourt];
@@ -700,8 +721,8 @@ function renderForecast() {
       sessHtml = '<div class="dc-sessions"><div class="dc-sess-pill sp-bad">Not playable</div></div>';
     } else {
       sessHtml = '<div class="dc-sessions">' + sessScores.map(({sess, score}) => {
-        const cls = {great:'sp-great',ok:'sp-ok',windy:'sp-windy',bad:'sp-bad',rain:'sp-rain'}[score]||'sp-bad';
-        const lbl = {great:'✓ Great',ok:'~ OK',windy:'💨 Windy',bad:'✗ Bad',rain:'🌧 Rain'}[score]||score;
+        const cls = {perfect:'sp-perfect',great:'sp-great',ok:'sp-ok',windy:'sp-windy',bad:'sp-bad',rain:'sp-rain'}[score]||'sp-bad';
+        const lbl = {perfect:'⭐ Perfect',great:'✓ Great',ok:'~ OK',windy:'💨 Windy',bad:'✗ Bad',rain:'🌧 Rain'}[score]||score;
         return `<div class="dc-sess-pill ${cls}">${sessAbbr(sess.label)}: ${lbl}</div>`;
       }).join('') + '</div>';
     }
@@ -721,7 +742,7 @@ function renderForecast() {
   showDetail(0);
 }
 
-function wc(w){return w<=12?'var(--green)':w<=16?'var(--yellow)':w<=20?'var(--orange)':'var(--red)';}
+function wc(w){return w<=5?'#059669':w<=10?'var(--green)':w<=15?'var(--yellow)':w<=20?'var(--orange)':'var(--red)';}
 
 // ── Detail ────────────────────────────────────────────────────────────────
 function showDetail(dayIdx){
@@ -785,7 +806,7 @@ function showDetail(dayIdx){
       const afterClose =c.hasLights&&hr>=(c.lightsUntil||99);
       const isClosed   =(!c.hasLights&&afterSunset)||afterClose;
       const pill=isClosed?PILL.closed:
-        score==='great'?PILL.great:score==='ok'?PILL.ok:
+        score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
         score==='windy'?PILL.windy:score==='rain'?PILL.rain:PILL.bad;
       const feelStr=Math.round(feel)!==Math.round(temp)
         ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
@@ -828,7 +849,20 @@ function buildTips(dayIdx,sessions,c){
 }
 
 // ── RSVP ─────────────────────────────────────────────────────────────────
-function getPlayers(){return JSON.parse(localStorage.getItem('pickl-players')||'[]');}
+// Default squad roster (pre-populated from group)
+const DEFAULT_PLAYERS = [
+  'Arafath Khan','Khalid Hussain','Aamir Waheed','Anwer Muhammed',
+  'Bilal Musavvir','Faisal Khan','Jawed Lashari','Khalid Khan',
+  'Mohammad Naveed','Nadeem Parvez','Navaid Rafiq','Salim','Shahzad Ikhlas',
+  'Aboo Becker','Abu','Adeel Shibli','Ali','Altaf','Amir Gul',
+  'Arafath Iman','Asim Naeem','Faizan Shekha','Ibrahim Khaleel',
+  'Md Yousuf','Mohamed Arif Hanifa','Shabeer Usman','Shahin','Shaik','Waris Hussain'
+];
+function getPlayers(){
+  const saved = localStorage.getItem('pickl-players');
+  if (saved === null) { savePlayers(DEFAULT_PLAYERS); return DEFAULT_PLAYERS; }
+  return JSON.parse(saved);
+}
 function savePlayers(a){localStorage.setItem('pickl-players',JSON.stringify(a));}
 function addPlayer(){
   const el=document.getElementById('playerInput');
@@ -912,8 +946,9 @@ function sessionScore(sess, dayStart, h, c) {
   if (scores.length === 0) return 'bad';
   if (scores.every(s => s === 'rain')) return 'rain';
   if (scores.every(s => s === 'bad' || s === 'rain')) return 'bad';
-  if (scores.every(s => s === 'great')) return 'great';
-  if (scores.filter(s => s === 'great' || s === 'ok').length >= scores.length / 2) return 'ok';
+  if (scores.every(s => s === 'perfect')) return 'perfect';
+  if (scores.every(s => s === 'perfect' || s === 'great')) return 'great';
+  if (scores.filter(s => s === 'perfect' || s === 'great' || s === 'ok').length >= scores.length / 2) return 'ok';
   if (scores.some(s => s === 'windy' || s === 'bad')) return 'windy';
   return 'windy';
 }
