@@ -825,17 +825,21 @@ async function loadZip(zip) {
 function buildSessions(date, sunset) {
   const court = COURTS[selectedCourt];
   const dow = date.getDay();
-  const isWE = dow===0||dow===6, isMon=dow===1, isWed=dow===3;
+  const isWE = dow===0||dow===6;
   const sunsetHr = Math.floor(sunset/60);
   const closeHr  = court.hasLights ? (court.lightsUntil||sunsetHr) : sunsetHr;
   const sessions = [];
+
+  // Morning — weekends only (8 AM, 9 AM, 10 AM)
   if (isWE) {
-    sessions.push({ label:'Morning Session', start:7, end:10 });
-    if (closeHr >= 17) sessions.push({ label:'Evening Session', start:17, end:Math.min(closeHr,21) });
+    sessions.push({ label:'Morning Session', start:8, end:11 });
   }
-  if (isMon||isWed) {
-    if (closeHr >= 18) sessions.push({ label:`Weekday Session (${isMon?'Mon':'Wed'})`, start:17, end:Math.min(closeHr,19) });
+
+  // Evening — every day (5 PM, 6 PM, 7 PM, 8 PM)
+  if (closeHr >= 17) {
+    sessions.push({ label:'Evening Session', start:17, end:Math.min(closeHr, 21) });
   }
+
   return sessions;
 }
 
@@ -1067,8 +1071,8 @@ function showDetail(dayIdx){
 
   if(sessions.length===0){
     html+=`<div class="session-block" style="text-align:center;padding:24px;color:var(--muted)">
-      No typical sessions on ${DOW[date.getDay()].substring(0,3)}.<br>
-      <small>Your group plays Mon/Wed evenings and weekends.</small>
+      No sessions available on ${DOW[date.getDay()].substring(0,3)}.<br>
+      <small>Evening sessions run daily · Morning sessions on weekends.</small>
     </div>`;
   }
 
@@ -1158,9 +1162,7 @@ function sessionScore(sess, dayStart, h, c) {
 function sessAbbr(label) {
   if (label.includes('Morning')) return '🌅 Morn';
   if (label.includes('Evening')) return '🌇 Eve';
-  if (label.includes('Mon')) return '📅 Mon';
-  if (label.includes('Wed')) return '📅 Wed';
-  return label.substring(0, 6);
+  return label.substring(0, 8);
 }
 
 // ── Wind helpers ──────────────────────────────────────────────────────────
