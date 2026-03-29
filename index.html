@@ -448,6 +448,156 @@
       #detail-panel { padding: 16px 12px; }
       #detail-panel h2 { font-size: 0.95rem; }
     }
+
+    /* ── Page tabs ── */
+    .page-tabs {
+      display: flex; gap: 4px; margin-bottom: 20px;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 4px; width: fit-content;
+    }
+    .page-tab {
+      padding: 7px 20px; border-radius: 9px; font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; border: none; background: transparent; color: var(--muted);
+      transition: all 0.15s;
+    }
+    .page-tab.active { background: var(--blue); color: #fff; }
+    .page-tab:hover:not(.active) { background: var(--bg); color: var(--text); }
+    body.dark .page-tabs { background: var(--card); border-color: var(--border); }
+    body.dark .page-tab:hover:not(.active) { background: #334155; }
+
+    /* ── Stats page ── */
+    .stats-section { margin-bottom: 24px; }
+    .stats-section-title {
+      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--muted); font-weight: 600; margin-bottom: 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* ── Leaderboard ── */
+    .leaderboard {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .lb-row {
+      display: grid; grid-template-columns: 30px 1fr 40px 40px 56px 72px;
+      gap: 8px; align-items: center; padding: 12px 16px;
+      border-bottom: 1px solid var(--border); font-size: 0.83rem;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-header {
+      font-size: 0.65rem; color: var(--muted); font-weight: 700;
+      text-transform: uppercase; background: var(--bg); padding: 8px 16px;
+    }
+    body.dark .lb-header { background: #0f172a; }
+    .lb-rank { font-weight: 800; color: var(--muted); font-size: 0.78rem; text-align: center; }
+    .lb-team { font-weight: 700; font-size: 0.85rem; }
+    .lb-win  { color: var(--green); font-weight: 700; text-align: center; }
+    .lb-loss { color: var(--muted); text-align: center; }
+    .lb-pct  { font-weight: 700; text-align: center; }
+    .lb-streak {
+      font-size: 0.72rem; font-weight: 700; padding: 2px 9px;
+      border-radius: 20px; text-align: center; display: inline-block;
+    }
+    .streak-w { background: var(--green-bg); color: var(--green); }
+    .streak-l { background: var(--red-bg);   color: var(--red); }
+    body.dark .leaderboard { background: var(--card); border-color: var(--border); }
+
+    /* ── Recent games ── */
+    .game-list { display: flex; flex-direction: column; gap: 8px; }
+    .game-item {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 12px 14px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    body.dark .game-item { background: var(--card); border-color: var(--border); }
+    .game-date  { font-size: 0.7rem; color: var(--muted); min-width: 68px; }
+    .game-teams { flex: 1; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; min-width: 0; }
+    .game-team  { font-size: 0.82rem; font-weight: 600; }
+    .game-score {
+      font-size: 1rem; font-weight: 800; padding: 3px 12px;
+      background: var(--bg); border-radius: 8px; white-space: nowrap;
+    }
+    body.dark .game-score { background: #0f172a; }
+    .game-winner { color: var(--green); }
+    .game-loser  { color: var(--muted); }
+    .game-vs     { color: var(--muted); font-size: 0.7rem; }
+    .game-delete {
+      color: var(--muted); cursor: pointer; font-size: 0.78rem; margin-left: auto;
+      padding: 4px 7px; border-radius: 6px; border: none; background: transparent;
+      flex-shrink: 0;
+    }
+    .game-delete:hover { color: var(--red); background: var(--red-bg); }
+
+    /* ── Squad manager ── */
+    .squad-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+    .squad-chip {
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 5px 10px 5px 6px;
+      font-size: 0.8rem; display: flex; align-items: center; gap: 6px;
+    }
+    body.dark .squad-chip { background: #0f172a; border-color: var(--border); }
+    .s-remove { color: var(--muted); cursor: pointer; font-size: 0.85rem; }
+    .s-remove:hover { color: var(--red); }
+    .squad-add-row { display: flex; gap: 8px; margin-bottom: 14px; }
+    .squad-add-row input {
+      flex: 1; background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text); border-radius: 9px; padding: 8px 12px; font-size: 0.85rem;
+    }
+    .squad-add-row input:focus { outline: none; border-color: var(--blue); }
+    body.dark .squad-add-row input { background: #0f172a; }
+
+    /* ── Log Game Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      z-index: 500; display: none; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card); border-radius: 18px; padding: 26px;
+      width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.28);
+      border: 1.5px solid var(--border);
+    }
+    body.dark .modal { background: #1e293b; border-color: #334155; }
+    .modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 22px; }
+    .modal-section { margin-bottom: 18px; }
+    .modal-section label {
+      font-size: 0.69rem; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--muted); font-weight: 700; display: block; margin-bottom: 8px;
+    }
+    .team-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .team-selects select {
+      background: var(--bg); border: 1.5px solid var(--border); color: var(--text);
+      border-radius: 9px; padding: 8px 10px; font-size: 0.85rem; width: 100%;
+    }
+    .team-selects select:focus { outline: none; border-color: var(--blue); }
+    body.dark .team-selects select { background: #0f172a; border-color: #334155; }
+    .score-inputs { display: flex; align-items: center; gap: 14px; }
+    .score-inputs input {
+      width: 72px; background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text); border-radius: 9px; padding: 10px 12px;
+      font-size: 1.2rem; font-weight: 800; text-align: center;
+    }
+    .score-inputs input:focus { outline: none; border-color: var(--blue); }
+    body.dark .score-inputs input { background: #0f172a; border-color: #334155; }
+    .score-dash { font-size: 1.3rem; font-weight: 700; color: var(--muted); }
+    .modal-date-input {
+      background: var(--bg); border: 1.5px solid var(--border); color: var(--text);
+      border-radius: 9px; padding: 8px 12px; font-size: 0.85rem; width: 100%;
+    }
+    .modal-date-input:focus { outline: none; border-color: var(--blue); }
+    body.dark .modal-date-input { background: #0f172a; border-color: #334155; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+
+    /* Stats responsive */
+    @media (max-width: 640px) {
+      .lb-row { grid-template-columns: 26px 1fr 34px 34px 46px 60px; gap: 5px; padding: 10px 10px; font-size: 0.78rem; }
+      .lb-header { font-size: 0.6rem; }
+      .game-item { gap: 8px; padding: 10px 10px; }
+      .team-selects { grid-template-columns: 1fr; }
+      .modal { padding: 18px; }
+    }
   </style>
 </head>
 <body>
@@ -490,6 +640,14 @@
 
 <main>
 
+<!-- ── Page navigation ── -->
+<div class="page-tabs">
+  <button class="page-tab active" id="tab-weather" onclick="switchPage('weather')">🌤 Weather</button>
+  <button class="page-tab" id="tab-stats" onclick="switchPage('stats')">🏆 Stats</button>
+</div>
+
+<div id="weather-page">
+
   <!-- Best day banner -->
   <div id="best-day-banner">
     <div class="bdlabel">🏆 Best play window coming up</div>
@@ -528,7 +686,102 @@
   <!-- Detail -->
   <div id="detail-panel"></div>
 
+</div><!-- end #weather-page -->
+
+<!-- ══════════════════════════════════════════════
+     STATS PAGE
+══════════════════════════════════════════════ -->
+<div id="stats-page" style="display:none">
+
+  <!-- Leaderboard -->
+  <div class="stats-section">
+    <div class="stats-section-title">
+      <span>🏆 Team Leaderboard</span>
+      <button class="btn btn-primary" onclick="openLogGame()">➕ Log Game</button>
+    </div>
+    <div class="leaderboard">
+      <div class="lb-row lb-header">
+        <span>#</span><span>Team (2v2)</span>
+        <span style="text-align:center">W</span>
+        <span style="text-align:center">L</span>
+        <span style="text-align:center">Win%</span>
+        <span style="text-align:center">Streak</span>
+      </div>
+      <div id="leaderboard-body">
+        <div style="padding:28px;text-align:center;color:var(--muted);font-size:0.85rem">
+          No games yet — hit <strong>➕ Log Game</strong> to start!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Games -->
+  <div class="stats-section">
+    <div class="stats-section-title"><span>📋 Recent Games</span></div>
+    <div class="game-list" id="recent-games">
+      <div style="padding:20px;text-align:center;color:var(--muted);font-size:0.85rem">No games logged yet.</div>
+    </div>
+  </div>
+
+  <!-- Squad -->
+  <div class="stats-section">
+    <div class="stats-section-title"><span>👥 Your Squad</span></div>
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px">
+      <div class="squad-add-row">
+        <input type="text" id="squad-new-name" placeholder="Add player name…"
+          onkeydown="if(event.key==='Enter') addSquadPlayer()" maxlength="30" />
+        <button class="btn btn-primary" onclick="addSquadPlayer()">+ Add</button>
+      </div>
+      <div class="squad-grid" id="squad-chips"></div>
+    </div>
+  </div>
+
+</div><!-- end #stats-page -->
+
 </main>
+
+<!-- ── Log Game Modal ── -->
+<div class="modal-overlay" id="logGameModal">
+  <div class="modal">
+    <div class="modal-title">🏆 Log a Game</div>
+
+    <div class="modal-section">
+      <label>📅 Date</label>
+      <input type="date" class="modal-date-input" id="game-date" />
+    </div>
+
+    <div class="modal-section">
+      <label>🟦 Team A — pick 2 players</label>
+      <div class="team-selects">
+        <select id="sel-a1"><option value="">— Player 1 —</option></select>
+        <select id="sel-a2"><option value="">— Player 2 —</option></select>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <label>🟥 Team B — pick 2 players</label>
+      <div class="team-selects">
+        <select id="sel-b1"><option value="">— Player 1 —</option></select>
+        <select id="sel-b2"><option value="">— Player 2 —</option></select>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <label>🎯 Score &nbsp;<span style="font-weight:400;text-transform:none;letter-spacing:0">(Team A – Team B)</span></label>
+      <div class="score-inputs">
+        <input type="number" id="score-a" min="0" max="99" placeholder="11" />
+        <span class="score-dash">–</span>
+        <input type="number" id="score-b" min="0" max="99" placeholder="9" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeLogGame()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGame()">Save Game ✓</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -974,6 +1227,226 @@ if (localStorage.getItem('pickl-theme') === 'dark') {
   document.body.classList.add('dark');
   document.getElementById('themeBtn').textContent = '☀️ Light';
 }
+
+// ── Stats ──────────────────────────────────────────────────────────────────
+const DEFAULT_SQUAD = [
+  'Nadeem','Ahmed','Omar','Ali','Zaid','Hassan','Bilal','Tariq',
+  'Kamran','Imran','Farhan','Saad','Usman','Rizwan','Hamza',
+  'Khalid','Adeel','Waqas','Asad','Faisal'
+];
+
+function getSquad() {
+  const s = localStorage.getItem('pickl-squad');
+  return s ? JSON.parse(s) : [...DEFAULT_SQUAD];
+}
+function saveSquad(sq) { localStorage.setItem('pickl-squad', JSON.stringify(sq)); }
+
+function getGames() {
+  const s = localStorage.getItem('pickl-games');
+  return s ? JSON.parse(s) : [];
+}
+function saveGames(g) { localStorage.setItem('pickl-games', JSON.stringify(g)); }
+
+function teamKey(p1, p2) { return [p1, p2].sort().join(' & '); }
+
+// ── Page switching ──────────────────────────────────────────────────────────
+function switchPage(page) {
+  document.getElementById('weather-page').style.display = page === 'weather' ? '' : 'none';
+  document.getElementById('stats-page').style.display   = page === 'stats'   ? '' : 'none';
+  document.getElementById('tab-weather').classList.toggle('active', page === 'weather');
+  document.getElementById('tab-stats').classList.toggle('active', page === 'stats');
+  if (page === 'stats') renderStats();
+}
+
+// ── Compute leaderboard ──────────────────────────────────────────────────────
+function computeLeaderboard() {
+  const games = getGames();
+  const teams = {};
+  for (const g of games) {
+    const kA = teamKey(g.teamA[0], g.teamA[1]);
+    const kB = teamKey(g.teamB[0], g.teamB[1]);
+    if (!teams[kA]) teams[kA] = { w:0, l:0, results:[] };
+    if (!teams[kB]) teams[kB] = { w:0, l:0, results:[] };
+    if (g.scoreA > g.scoreB) {
+      teams[kA].w++; teams[kA].results.push('W');
+      teams[kB].l++; teams[kB].results.push('L');
+    } else {
+      teams[kB].w++; teams[kB].results.push('W');
+      teams[kA].l++; teams[kA].results.push('L');
+    }
+  }
+  return Object.entries(teams).map(([key, t]) => {
+    const total = t.w + t.l;
+    const pct   = total > 0 ? Math.round(t.w / total * 100) : 0;
+    let streak = 0, streakType = '';
+    for (let i = t.results.length - 1; i >= 0; i--) {
+      if (i === t.results.length - 1) { streakType = t.results[i]; streak = 1; }
+      else if (t.results[i] === streakType) streak++;
+      else break;
+    }
+    return { key, w: t.w, l: t.l, pct, streak, streakType };
+  }).sort((a, b) => b.pct - a.pct || b.w - a.w || a.l - b.l);
+}
+
+// ── Render stats ─────────────────────────────────────────────────────────────
+function renderStats() {
+  renderLeaderboard();
+  renderRecentGames();
+  renderSquad();
+}
+
+function renderLeaderboard() {
+  const lb = computeLeaderboard();
+  const el = document.getElementById('leaderboard-body');
+  if (!el) return;
+  if (lb.length === 0) {
+    el.innerHTML = `<div style="padding:28px;text-align:center;color:var(--muted);font-size:0.85rem">
+      No games yet — hit <strong>➕ Log Game</strong> to start!
+    </div>`;
+    return;
+  }
+  el.innerHTML = lb.map((t, i) => {
+    const medal = ['🥇','🥈','🥉'][i] || '';
+    const streakHtml = t.streak > 0
+      ? `<span class="lb-streak ${t.streakType==='W'?'streak-w':'streak-l'}">${t.streakType}${t.streak}</span>`
+      : '<span style="color:var(--muted)">–</span>';
+    return `<div class="lb-row">
+      <span class="lb-rank">${medal || (i+1)}</span>
+      <span class="lb-team">${t.key}</span>
+      <span class="lb-win">${t.w}</span>
+      <span class="lb-loss">${t.l}</span>
+      <span class="lb-pct">${t.pct}%</span>
+      <span style="text-align:center">${streakHtml}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderRecentGames() {
+  const allGames = getGames();
+  const games = allGames.slice().reverse().slice(0, 15);
+  const el = document.getElementById('recent-games');
+  if (!el) return;
+  if (games.length === 0) {
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted);font-size:0.85rem">No games logged yet.</div>`;
+    return;
+  }
+  el.innerHTML = games.map((g, ri) => {
+    const realIdx = allGames.length - 1 - ri;
+    const winA  = g.scoreA > g.scoreB;
+    const d     = new Date(g.date + 'T12:00:00');
+    const dStr  = d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    return `<div class="game-item">
+      <span class="game-date">📅 ${dStr}</span>
+      <div class="game-teams">
+        <span class="game-team ${winA?'game-winner':'game-loser'}">${g.teamA[0]} &amp; ${g.teamA[1]}</span>
+        <span class="game-vs">vs</span>
+        <span class="game-team ${!winA?'game-winner':'game-loser'}">${g.teamB[0]} &amp; ${g.teamB[1]}</span>
+      </div>
+      <span class="game-score">${g.scoreA}–${g.scoreB}</span>
+      <button class="game-delete" onclick="deleteGame(${realIdx})" title="Delete game">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderSquad() {
+  const squad = getSquad();
+  const el = document.getElementById('squad-chips');
+  if (!el) return;
+  el.innerHTML = squad.map((name, i) => {
+    const bg = aColor(name);
+    return `<span class="squad-chip">
+      <span class="p-avatar" style="background:${bg};width:22px;height:22px;font-size:0.6rem;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex-shrink:0">${initials(name)}</span>
+      ${name}
+      <span class="s-remove" onclick="removeSquadPlayer(${i})">×</span>
+    </span>`;
+  }).join('');
+  updateModalDropdowns();
+}
+
+function updateModalDropdowns() {
+  const squad = getSquad();
+  const opts  = ['<option value="">— Select —</option>',
+    ...squad.map(n => `<option value="${n}">${n}</option>`)
+  ].join('');
+  ['sel-a1','sel-a2','sel-b1','sel-b2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { const v = el.value; el.innerHTML = opts; el.value = v; }
+  });
+}
+
+function addSquadPlayer() {
+  const inp  = document.getElementById('squad-new-name');
+  const name = inp.value.trim();
+  if (!name) return;
+  const sq = getSquad();
+  if (sq.map(n=>n.toLowerCase()).includes(name.toLowerCase())) {
+    showToast('Player already in squad'); return;
+  }
+  sq.push(name);
+  saveSquad(sq);
+  inp.value = '';
+  renderSquad();
+  showToast(`✓ ${name} added to squad`);
+}
+
+function removeSquadPlayer(idx) {
+  const sq = getSquad();
+  const name = sq[idx];
+  sq.splice(idx, 1);
+  saveSquad(sq);
+  renderSquad();
+  showToast(`${name} removed`);
+}
+
+// ── Log Game Modal ────────────────────────────────────────────────────────────
+function openLogGame() {
+  updateModalDropdowns();
+  document.getElementById('game-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('score-a').value   = '';
+  document.getElementById('score-b').value   = '';
+  ['sel-a1','sel-a2','sel-b1','sel-b2'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('logGameModal').classList.add('open');
+}
+function closeLogGame() {
+  document.getElementById('logGameModal').classList.remove('open');
+}
+
+function saveGame() {
+  const a1 = document.getElementById('sel-a1').value;
+  const a2 = document.getElementById('sel-a2').value;
+  const b1 = document.getElementById('sel-b1').value;
+  const b2 = document.getElementById('sel-b2').value;
+  const sA = parseInt(document.getElementById('score-a').value);
+  const sB = parseInt(document.getElementById('score-b').value);
+  const dt = document.getElementById('game-date').value;
+
+  if (!a1 || !a2 || !b1 || !b2) { showToast('⚠️ Please select all 4 players'); return; }
+  const all = [a1, a2, b1, b2];
+  if (new Set(all).size < 4) { showToast('⚠️ Each player can only be on one team'); return; }
+  if (isNaN(sA) || isNaN(sB) || sA < 0 || sB < 0) { showToast('⚠️ Enter valid scores'); return; }
+  if (sA === sB) { showToast('⚠️ No ties in pickleball!'); return; }
+
+  const games = getGames();
+  games.push({ date: dt || new Date().toISOString().split('T')[0], teamA:[a1,a2], teamB:[b1,b2], scoreA:sA, scoreB:sB });
+  saveGames(games);
+  closeLogGame();
+  renderStats();
+  showToast('✓ Game saved!');
+}
+
+function deleteGame(idx) {
+  if (!confirm('Delete this game?')) return;
+  const games = getGames();
+  games.splice(idx, 1);
+  saveGames(games);
+  renderStats();
+  showToast('Game deleted');
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', e => {
+  if (e.target.id === 'logGameModal') closeLogGame();
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────
 loadZip('75094');
