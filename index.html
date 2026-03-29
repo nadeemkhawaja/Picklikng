@@ -919,7 +919,7 @@ function shareDay(){
   const hi=Math.round(d.temperature_2m_max[selectedDayIdx]);
   const lo=Math.round(d.temperature_2m_min[selectedDayIdx]);
   const rec=maxW<=12&&!wmo(d.weathercode[selectedDayIdx]).rain?'✅ Great conditions!':maxW<=16?'⚠️ Borderline wind':'🚫 Too windy/rainy';
-  const text=`🏓 Pickl-IQ Forecast\n${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()} · ${c.name}\n${wmo(d.weathercode[selectedDayIdx]).icon} ${wmo(d.weathercode[selectedDayIdx]).label}\n🌡 ${hi}°/${lo}°F  💨 Wind: ${maxW} mph  Gust: ${maxG} mph\n${rec}\nhttps://nadeemkhawaja.github.io/Picklikng`;
+  const text=`🏓 Pickl-IQ Forecast\n${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()} · ${c.name}\n${wmo(d.weathercode[selectedDayIdx]).icon} ${wmo(d.weathercode[selectedDayIdx]).label}\n🌡 ${hi}°/${lo}°F  💨 Wind: ${maxW} mph  Gust: ${maxG} mph\n${rec}\nhttps://nadeemkhawaja.github.io/Pickl-IQ`;
   if(navigator.share){navigator.share({title:'Pickl-IQ Forecast',text});}
   else{navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));}
 }

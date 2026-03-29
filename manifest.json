@@ -2,7 +2,7 @@
   "name": "Pickl-IQ — Pickleball Weather Planner",
   "short_name": "Pickl-IQ",
   "description": "Pickleball weather planner for Murphy & Wylie, TX courts",
-  "start_url": "/Picklikng/",
+  "start_url": "/Pickl-IQ/",
   "display": "standalone",
   "background_color": "#f8fafc",
   "theme_color": "#2563eb",
