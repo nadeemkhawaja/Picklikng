@@ -479,15 +479,13 @@
     <div class="bdsub"  id="bdsub">—</div>
   </div>
 
-  <!-- Zip search + dynamic courts -->
-  <div class="section-label">Find Courts Near You</div>
+  <!-- Zip weather lookup -->
   <div class="zip-search">
     <input type="text" id="zipInput" placeholder="ZIP code" maxlength="5" value="75094"
       onkeydown="if(event.key==='Enter') doZipSearch()" />
-    <button class="btn btn-primary" onclick="doZipSearch()">🔍 Find Courts</button>
+    <button class="btn btn-primary" onclick="doZipSearch()">🔍 Get Forecast</button>
     <span class="zip-hint" id="zipHint"></span>
   </div>
-  <div id="courtTabsContainer" class="court-tabs"></div>
 
   <!-- Controls -->
   <div class="controls">
@@ -516,125 +514,39 @@
 <div id="toast"></div>
 
 <script>
-// ── Courts (populated dynamically) ────────────────────────────────────────
-let COURTS = [];
+// ── Location (ZIP-based, single area) ─────────────────────────────────────
+let COURTS = [{ name:'Murphy, TX', city:'Murphy, TX', lat:33.0151, lon:-96.6113, hasLights:false, lightsUntil:null, covered:false, windFactor:1.0 }];
 let selectedCourt = 0, weatherData = null, selectedDayIdx = 0;
 
-// ── Court search (Overpass + Nominatim) ───────────────────────────────────
 function doZipSearch() {
   const zip = document.getElementById('zipInput').value.trim();
   if (zip.length < 5) return;
-  searchCourts(zip);
+  loadZip(zip);
 }
 
-async function geocodeZip(zip) {
-  const url = `https://nominatim.openstreetmap.org/search?postalcode=${zip}&format=json&countrycodes=us&limit=1`;
-  const res = await fetch(url, { headers: {'Accept-Language':'en','User-Agent':'Pickl-IQ/1.0'} });
-  const data = await res.json();
-  if (!data.length) throw new Error(`ZIP code ${zip} not found`);
-  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), label: data[0].display_name.split(',').slice(0,2).join(',') };
-}
-
-async function findPickleballCourts(lat, lon) {
-  const q = `[out:json][timeout:30];
-(
-  node["sport"~"pickleball"](around:20000,${lat},${lon});
-  way["sport"~"pickleball"](around:20000,${lat},${lon});
-  node["leisure"="pitch"]["sport"="tennis"]["access"!="private"](around:12000,${lat},${lon});
-  way["leisure"="pitch"]["sport"="tennis"]["access"!="private"](around:12000,${lat},${lon});
-  node["leisure"="sports_centre"]["sport"~"tennis|pickleball"](around:12000,${lat},${lon});
-  way["leisure"="sports_centre"]["sport"~"tennis|pickleball"](around:12000,${lat},${lon});
-);
-out body center;`;
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method:'POST', body:'data='+encodeURIComponent(q)
-  });
-  if (!res.ok) throw new Error('Court search failed');
-  const data = await res.json();
-  return data.elements || [];
-}
-
-function haversineKm(lat1,lon1,lat2,lon2) {
-  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-function processCourtResults(elements, cLat, cLon) {
-  const seen = new Map();
-  elements.forEach(el => {
-    const lat = el.lat || el.center?.lat;
-    const lon = el.lon || el.center?.lon;
-    if (!lat || !lon) return;
-    const tags = el.tags || {};
-    const name = tags.name || tags['name:en'];
-    if (!name) return; // skip unnamed courts
-    const key = name.toLowerCase().replace(/\s/g,'') + Math.round(lat*10) + Math.round(lon*10);
-    if (seen.has(key)) return;
-    const sport = (tags.sport || '').toLowerCase();
-    const isPickleball = sport.includes('pickleball');
-    const hasLights = tags.lit === 'yes';
-    const covered   = tags.covered === 'yes' || tags.shelter === 'yes';
-    const surface   = tags.surface;
-    const courtCount= tags.court_count || tags.courts || null;
-    const city      = [tags['addr:city'], tags['addr:state']].filter(Boolean).join(', ') || '';
-    const dist      = haversineKm(cLat, cLon, lat, lon);
-    seen.set(key, {
-      name, city, lat, lon, dist,
-      hasLights, lightsUntil: hasLights ? 22 : null,
-      covered, windFactor: 1.0,
-      surface: surface || null,
-      courtCount: courtCount ? parseInt(courtCount) : null,
-      isPickleball,
-      mapUrl: `https://maps.google.com/?q=${lat},${lon}`,
-    });
-  });
-  return [...seen.values()]
-    .sort((a,b) => (b.isPickleball-a.isPickleball) || (a.dist-b.dist))
-    .slice(0,3);
-}
-
-function renderCourtTabs() {
-  const container = document.getElementById('courtTabsContainer');
-  if (!COURTS.length) {
-    container.innerHTML = '<div class="error-box">No public courts found near this ZIP. Try a nearby ZIP code.</div>';
-    return;
-  }
-  container.innerHTML = COURTS.map((c,i) => `
-    <div class="court-tab ${i===selectedCourt?'active':''}" onclick="selectCourt(${i})">
-      <div class="ct-name">${c.name}</div>
-      <div class="ct-meta">${c.city||''}${c.city&&c.dist?' · ':''}${c.dist?c.dist.toFixed(1)+' mi away':''}${c.surface?' · '+c.surface:''}</div>
-      <div class="ct-badges">
-        <span class="badge ${c.isPickleball?'badge-cover':'badge-light'}">${c.isPickleball?'🏓 Pickleball':'🎾 Tennis/PB'}</span>
-        ${c.hasLights?`<span class="badge badge-light">💡 Lights</span>`:`<span class="badge badge-nolight">No lights data</span>`}
-        ${c.covered?`<span class="badge badge-cover">🏠 Covered</span>`:''}
-        ${c.courtCount?`<span class="badge badge-cover">${c.courtCount} courts</span>`:''}
-      </div>
-      <a class="ct-map" href="${c.mapUrl}" target="_blank" onclick="event.stopPropagation()">📍 Google Maps</a>
-    </div>`).join('');
-}
-
-async function searchCourts(zip) {
-  setStatus('Searching…', false);
-  document.getElementById('courtTabsContainer').innerHTML =
-    `<div class="loading"><div class="spinner"></div>Finding courts near ${zip}…</div>`;
-  document.getElementById('forecastContainer').innerHTML = '';
+async function loadZip(zip) {
+  setStatus('Looking up ZIP…', false);
+  document.getElementById('zipHint').textContent = '';
+  document.getElementById('forecastContainer').innerHTML =
+    '<div class="loading"><div class="spinner"></div>Loading forecast…</div>';
   document.getElementById('detail-panel').style.display = 'none';
   document.getElementById('best-day-banner').style.display = 'none';
-  document.getElementById('zipHint').textContent = '';
-
   try {
-    const { lat, lon, label } = await geocodeZip(zip);
+    const url = `https://nominatim.openstreetmap.org/search?postalcode=${zip}&format=json&countrycodes=us&limit=1`;
+    const res  = await fetch(url, { headers:{'Accept-Language':'en'} });
+    const data = await res.json();
+    if (!data.length) throw new Error(`ZIP ${zip} not found`);
+    const lat  = parseFloat(data[0].lat);
+    const lon  = parseFloat(data[0].lon);
+    const parts= data[0].display_name.split(',');
+    const label= parts.slice(0,2).join(',').trim();
+    COURTS[0]  = { ...COURTS[0], name:label, city:label, lat, lon };
     document.getElementById('zipHint').textContent = label;
-    const elements = await findPickleballCourts(lat, lon);
-    COURTS = processCourtResults(elements, lat, lon);
-    selectedCourt = 0;
-    renderCourtTabs();
-    if (COURTS.length) loadWeather();
-    else setStatus('No courts found — try a nearby ZIP', false);
+    loadWeather();
   } catch(e) {
-    document.getElementById('courtTabsContainer').innerHTML = `<div class="error-box">⚠️ ${e.message}</div>`;
-    setStatus('Search failed', false);
+    setStatus('ZIP lookup failed', false);
+    document.getElementById('forecastContainer').innerHTML =
+      `<div class="error-box">⚠️ ${e.message}</div>`;
   }
 }
 
@@ -1020,11 +932,6 @@ function showToast(msg){
 }
 
 // ── Court switch ──────────────────────────────────────────────────────────
-function selectCourt(idx){
-  selectedCourt=idx;
-  renderCourtTabs();
-  loadWeather();
-}
 
 // ── PWA install ───────────────────────────────────────────────────────────
 let deferredPrompt=null;
@@ -1051,7 +958,7 @@ if (localStorage.getItem('pickl-theme') === 'dark') {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
-searchCourts('75094');
+loadZip('75094');
 </script>
 </body>
 </html>
