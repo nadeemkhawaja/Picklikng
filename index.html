@@ -822,12 +822,9 @@ async function loadZip(zip) {
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────
-function buildSessions(date, sunset) {
-  const court = COURTS[selectedCourt];
-  const dow = date.getDay();
+function buildSessions(date) {
+  const dow  = date.getDay();
   const isWE = dow===0||dow===6;
-  const sunsetHr = Math.floor(sunset/60);
-  const closeHr  = court.hasLights ? (court.lightsUntil||sunsetHr) : sunsetHr;
   const sessions = [];
 
   // Morning — weekends only (8 AM, 9 AM, 10 AM)
@@ -836,10 +833,7 @@ function buildSessions(date, sunset) {
   }
 
   // Evening — every day (5 PM, 6 PM, 7 PM, 8 PM)
-  // Always show all 4 slots; per-hour scoring handles darkness/sunset
-  if (closeHr >= 17 || sunsetHr >= 17) {
-    sessions.push({ label:'Evening Session', start:17, end:21 });
-  }
+  sessions.push({ label:'Evening Session', start:17, end:21 });
 
   return sessions;
 }
@@ -938,7 +932,7 @@ function renderBestDay() {
   for(let i=0;i<d.time.length;i++){
     const date=new Date(d.time[i]+'T12:00:00');
     const sunset=parseTime(d.sunset[i]);
-    const sessions=buildSessions(date,sunset);
+    const sessions=buildSessions(date);
     const dayStart=i*24;
     for(const sess of sessions){
       const c=COURTS[selectedCourt];
@@ -985,7 +979,7 @@ function renderForecast() {
   for(let i=0;i<d.time.length;i++){
     const date=new Date(d.time[i]+'T12:00:00');
     const sunset=parseTime(d.sunset[i]);
-    const sessions=buildSessions(date,sunset);
+    const sessions=buildSessions(date);
     const dayStart=i*24;
     const ph=[];
     for(const sess of sessions)
@@ -1048,7 +1042,7 @@ function showDetail(dayIdx){
   const dateStr=d.time[dayIdx];
   const sunset=parseTime(d.sunset[dayIdx]);
   const dayStart=dayIdx*24;
-  const sessions=buildSessions(date,sunset);
+  const sessions=buildSessions(date);
   const panel=document.getElementById('detail-panel');
   panel.style.display='block';
   const maxW=Math.round(d.windspeed_10m_max[dayIdx]*c.windFactor);
@@ -1095,11 +1089,7 @@ function showDetail(dayIdx){
       const pp  =h.precipitation_probability[idx]||0;
       const code=h.weathercode[idx];
       const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor);
-      const afterSunset=hr>=Math.ceil(sunset/60);
-      const afterClose =c.hasLights&&hr>=(c.lightsUntil||99);
-      const isClosed   =(!c.hasLights&&afterSunset)||afterClose;
-      const pill=isClosed?PILL.closed:
-        score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
+      const pill=score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
         score==='windy'?PILL.windy:score==='rain'?PILL.rain:PILL.bad;
       const feelStr=Math.round(feel)!==Math.round(temp)
         ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
