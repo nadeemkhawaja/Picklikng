@@ -836,8 +836,9 @@ function buildSessions(date, sunset) {
   }
 
   // Evening — every day (5 PM, 6 PM, 7 PM, 8 PM)
-  if (closeHr >= 17) {
-    sessions.push({ label:'Evening Session', start:17, end:Math.min(closeHr, 21) });
+  // Always show all 4 slots; per-hour scoring handles darkness/sunset
+  if (closeHr >= 17 || sunsetHr >= 17) {
+    sessions.push({ label:'Evening Session', start:17, end:21 });
   }
 
   return sessions;
