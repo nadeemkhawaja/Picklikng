@@ -1064,6 +1064,7 @@ function showDetail(dayIdx){
       <div class="sum-badge"><div class="lb">Max Wind</div><div class="vl" style="color:${wc(maxW)}">${maxW} mph</div></div>
       <div class="sum-badge"><div class="lb">Max Gust</div><div class="vl" style="color:${wc(maxG)}">${maxG} mph</div></div>
       <div class="sum-badge"><div class="lb">Rain</div><div class="vl">${precip}"</div></div>
+      <div class="sum-badge"><div class="lb">Sunrise</div><div class="vl">${formatHour(Math.floor(parseTime(d.sunrise[dayIdx])/60),parseTime(d.sunrise[dayIdx])%60)}</div></div>
       <div class="sum-badge"><div class="lb">Sunset</div><div class="vl">${formatHour(Math.floor(sunset/60),sunset%60)}</div></div>
     </div>`;
 
