@@ -376,11 +376,6 @@
     .pill-perfect { background:#ecfdf5; color:#065f46; border:1px solid #6ee7b7; }
     body.dark .sp-perfect   { background:#022c22; color:#6ee7b7; }
     body.dark .pill-perfect { background:#022c22; color:#6ee7b7; border-color:#065f46; }
-    /* Wet courts */
-    .sp-wet   { background:#dbeafe; color:#1e40af; }
-    .pill-wet { background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; }
-    body.dark .sp-wet   { background:#0c1a2e; color:#60a5fa; }
-    body.dark .pill-wet { background:#0c1a2e; color:#60a5fa; border-color:#1d4ed8; }
 
     @media (max-width: 640px) {
       /* Header */
@@ -680,7 +675,6 @@
     <span class="legend-item"><span class="ldot" style="background:var(--yellow)"></span> OK (10–15 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Windy (15–20 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--red)"></span> Too Windy / Rain</span>
-    <span class="legend-item"><span class="ldot" style="background:#3b82f6"></span> 💧 Wet Courts</span>
   </div>
 
   <!-- 10-day grid -->
@@ -884,15 +878,15 @@ function dayScore(hours){
   if(s.filter(x=>x==='perfect'||x==='great'||x==='ok').length>=s.length/2)return'ok';
   return'marg';
 }
-const SCORE_RANK={perfect:4,great:3,ok:2,marg:1,windy:1,wet:0,bad:0,rain:0};
+const SCORE_RANK={perfect:4,great:3,ok:2,marg:1,windy:1,bad:0,rain:0};
 const PILL={
   perfect:'<span class="rec-pill pill-perfect">⭐ Perfect</span>',
   great:  '<span class="rec-pill pill-great">✓ Great</span>',
   ok:     '<span class="rec-pill pill-ok">~ OK</span>',
   windy:  '<span class="rec-pill pill-windy">💨 Windy</span>',
-  rain:   '<span class="rec-pill pill-rain">🌧 Rain</span>',
-  bad:    '<span class="rec-pill pill-bad">✗ Too Windy</span>',
-  wet:    '<span class="rec-pill pill-wet">💧 Wet Courts</span>',
+  rain:   '<span class="rec-pill pill-rain">🌧 Rain/Wet</span>',
+  bad:    '<span class="rec-pill pill-bad">✗ Too Windy/Bad</span>',
+  closed: '<span class="rec-pill pill-closed">Dark/Closed</span>',
 };
 
 // ── Weather fetch ─────────────────────────────────────────────────────────
@@ -903,7 +897,7 @@ async function loadWeather() {
   document.getElementById('best-day-banner').style.display='none';
   const c=COURTS[selectedCourt];
   const url=`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}`
-    +`&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weathercode,windspeed_10m,windgusts_10m,winddirection_10m`
+    +`&hourly=temperature_2m,apparent_temperature,precipitation_probability,weathercode,windspeed_10m,windgusts_10m,winddirection_10m`
     +`&daily=weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,windspeed_10m_max,windgusts_10m_max,sunrise,sunset`
     +`&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=10`;
   try {
@@ -1012,9 +1006,9 @@ function renderForecast() {
       sessHtml = '<div class="dc-sessions"><div class="dc-sess-pill sp-bad">Not playable</div></div>';
     } else {
       sessHtml = '<div class="dc-sessions">' + sessScores.map(({sess, score}) => {
-        const cls = {perfect:'sp-perfect',great:'sp-great',ok:'sp-ok',windy:'sp-windy',bad:'sp-bad',rain:'sp-rain',wet:'sp-wet'}[score]||'sp-bad';
-        const lbl = {perfect:'⭐ Perfect',great:'Great',ok:'OK',windy:'Windy',bad:'Bad',rain:'Rain',wet:'💧 Wet'}[score]||score;
-        return `<div class="dc-sess-pill ${cls}">${sessAbbr(sess.label)} ${lbl}</div>`;
+        const cls = {perfect:'sp-perfect',great:'sp-great',ok:'sp-ok',windy:'sp-windy',bad:'sp-bad',rain:'sp-rain'}[score]||'sp-bad';
+        const lbl = {perfect:'⭐ Perfect',great:'✓ Great',ok:'~ OK',windy:'💨 Windy',bad:'✗ Bad',rain:'🌧 Rain'}[score]||score;
+        return `<div class="dc-sess-pill ${cls}">${sessAbbr(sess.label)}: ${lbl}</div>`;
       }).join('') + '</div>';
     }
 
@@ -1095,8 +1089,7 @@ function showDetail(dayIdx){
       const pp  =h.precipitation_probability[idx]||0;
       const code=h.weathercode[idx];
       const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor);
-      const wet=isCourtWet(idx,h);
-      const pill=wet?PILL.wet:score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
+      const pill=score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
         score==='windy'?PILL.windy:score==='rain'?PILL.rain:PILL.bad;
       const feelStr=Math.round(feel)!==Math.round(temp)
         ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
@@ -1138,34 +1131,11 @@ function buildTips(dayIdx,sessions,c){
   return`<div class="tips-block"><div class="tips-title">Tips for Today</div>${tips.map(t=>`<p>${t}</p>`).join('')}</div>`;
 }
 
-// ── Wet court check ───────────────────────────────────────────────────────
-// Looks back up to 8 hours for rain. Drying time scales with total rainfall:
-//   < 2mm  → dry after 3 hrs   (light drizzle)
-//   2–8mm  → dry after 5 hrs   (moderate rain)
-//   8–20mm → dry after 7 hrs   (heavy rain — courts wet into evening)
-//   > 20mm → dry after 9 hrs   (very heavy — likely wet all day)
-function isCourtWet(idx, h) {
-  if (!h.precipitation) return false;
-  let totalMm = 0;
-  let lastRainHoursAgo = null;
-  for (let back = 1; back <= 9; back++) {
-    const i = idx - back;
-    if (i < 0) break;
-    const mm = h.precipitation[i] || 0;
-    totalMm += mm;
-    if (mm > 0.1 && lastRainHoursAgo === null) lastRainHoursAgo = back;
-  }
-  if (lastRainHoursAgo === null) return false; // no rain in last 9 hours
-  const dryAfter = totalMm < 2 ? 3 : totalMm < 8 ? 5 : totalMm < 20 ? 7 : 9;
-  return lastRainHoursAgo <= dryAfter;
-}
-
 // ── Session score (per session, more granular than dayScore) ──────────────
 function sessionScore(sess, dayStart, h, c) {
   const scores = [];
   for (let hr = sess.start; hr < sess.end; hr++) {
     const idx = dayStart + hr;
-    if (isCourtWet(idx, h)) { scores.push('wet'); continue; }
     scores.push(scoreHour(
       h.temperature_2m[idx], h.windspeed_10m[idx], h.windgusts_10m[idx],
       h.precipitation_probability[idx], h.weathercode[idx], c.windFactor
@@ -1174,18 +1144,16 @@ function sessionScore(sess, dayStart, h, c) {
   if (scores.length === 0) return 'bad';
   if (scores.every(s => s === 'rain')) return 'rain';
   if (scores.every(s => s === 'bad' || s === 'rain')) return 'bad';
-  if (scores.every(s => s === 'wet')) return 'wet';
   if (scores.every(s => s === 'perfect')) return 'perfect';
   if (scores.every(s => s === 'perfect' || s === 'great')) return 'great';
   if (scores.filter(s => s === 'perfect' || s === 'great' || s === 'ok').length >= scores.length / 2) return 'ok';
-  if (scores.some(s => s === 'wet')) return 'wet';
   if (scores.some(s => s === 'windy' || s === 'bad')) return 'windy';
   return 'windy';
 }
 function sessAbbr(label) {
-  if (label.includes('Morning')) return '🌅';
-  if (label.includes('Evening')) return '🌇';
-  return '📅';
+  if (label.includes('Morning')) return '🌅 Morn';
+  if (label.includes('Evening')) return '🌇 Eve';
+  return label.substring(0, 8);
 }
 
 // ── Wind helpers ──────────────────────────────────────────────────────────
