@@ -679,7 +679,7 @@
     <span class="legend-item"><span class="ldot" style="background:var(--yellow)"></span> OK (10–15 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Windy (15–20 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--red)"></span> Too Windy / Rain</span>
-    <span class="legend-item"><span class="ldot" style="background:#3b82f6"></span> 💧 Wet Courts</span>
+    <span class="legend-item"><span class="ldot" style="background:#3b82f6"></span> 💧 Wet</span>
   </div>
 
   <!-- 10-day grid -->
@@ -891,7 +891,7 @@ const PILL={
   windy:  '<span class="rec-pill pill-windy">💨 Windy</span>',
   rain:   '<span class="rec-pill pill-rain">🌧 Rain</span>',
   bad:    '<span class="rec-pill pill-bad">✗ Too Windy</span>',
-  wet:    '<span class="rec-pill pill-wet">💧 Wet Courts</span>',
+  wet:    '<span class="rec-pill pill-wet">💧 Wet</span>',
 };
 
 // ── Weather fetch ─────────────────────────────────────────────────────────
@@ -1095,8 +1095,8 @@ function showDetail(dayIdx){
       const code=h.weathercode[idx];
       const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor);
       const wet=isCourtWet(idx,h);
-      const pill=wet?PILL.wet:score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
-        score==='windy'?PILL.windy:score==='rain'?PILL.rain:PILL.bad;
+      const pill=score==='rain'?PILL.rain:wet?PILL.wet:score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
+        score==='windy'?PILL.windy:PILL.bad;
       const feelStr=Math.round(feel)!==Math.round(temp)
         ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
       html+=`
