@@ -1139,18 +1139,25 @@ function buildTips(dayIdx,sessions,c){
 }
 
 // ── Wet court check ───────────────────────────────────────────────────────
-// Returns true if rain in the prior 2 hours means courts are likely still wet.
-// Light rain (>0.3mm in 2hr) → wet; heavy rain (>4mm in 3hr) → wet longer.
+// Looks back up to 8 hours for rain. Drying time scales with total rainfall:
+//   < 2mm  → dry after 3 hrs   (light drizzle)
+//   2–8mm  → dry after 5 hrs   (moderate rain)
+//   8–20mm → dry after 7 hrs   (heavy rain — courts wet into evening)
+//   > 20mm → dry after 9 hrs   (very heavy — likely wet all day)
 function isCourtWet(idx, h) {
   if (!h.precipitation) return false;
-  const p1 = idx >= 1 ? (h.precipitation[idx-1] || 0) : 0;
-  const p2 = idx >= 2 ? (h.precipitation[idx-2] || 0) : 0;
-  const p3 = idx >= 3 ? (h.precipitation[idx-3] || 0) : 0;
-  const twoHr   = p1 + p2;
-  const threeHr = twoHr + p3;
-  if (twoHr   > 0.3) return true;   // any meaningful rain in last 2hr
-  if (threeHr > 4.0) return true;   // heavy rain in last 3hr, still draining
-  return false;
+  let totalMm = 0;
+  let lastRainHoursAgo = null;
+  for (let back = 1; back <= 9; back++) {
+    const i = idx - back;
+    if (i < 0) break;
+    const mm = h.precipitation[i] || 0;
+    totalMm += mm;
+    if (mm > 0.1 && lastRainHoursAgo === null) lastRainHoursAgo = back;
+  }
+  if (lastRainHoursAgo === null) return false; // no rain in last 9 hours
+  const dryAfter = totalMm < 2 ? 3 : totalMm < 8 ? 5 : totalMm < 20 ? 7 : 9;
+  return lastRainHoursAgo <= dryAfter;
 }
 
 // ── Session score (per session, more granular than dayScore) ──────────────
