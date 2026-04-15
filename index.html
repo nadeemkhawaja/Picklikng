@@ -805,21 +805,35 @@ function buildTips(dayIdx,sessions,c){
 
 
 // ── Wet court check ───────────────────────────────────────────────────────
-// Looks back up to 5 hrs (faster window for TX climate). Drying time scaled for heat/sun:
-//   < 2mm  → dry after 2 hrs  (drizzle — quick evaporation)
-//   2–8mm  → dry after 4 hrs  (moderate — typical morning rain, dry by afternoon)
-//   8–20mm → dry after 5 hrs  (heavy — still wet early evening, dry later)
-//   > 20mm → dry after 6 hrs  (very heavy)
-// Only counts rain >= 0.5mm (ignores trace amounts)
-function isCourtWet(idx, h) {
+// Smart logic: mark wet only if:
+// 1) Currently raining (pp > 50% or active rain code), OR
+// 2) Recent heavy rain (>= 1mm in last 2 hrs), OR
+// 3) Light rain within drying window (< 1mm, < 5 hrs ago)
+function isCourtWet(idx, h, pp, code) {
   if (!h.precipitation) return false;
+  const rainCodes = [45, 48, 51, 53, 55, 61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99];
+  const isRainingNow = pp > 50 || rainCodes.includes(code);
+
+  // If actively raining, courts are wet
+  if (isRainingNow) return true;
+
+  // Check for recent heavy rain (>= 1mm in last 2 hours)
+  let recentHeavy = 0;
+  for (let back = 1; back <= 2; back++) {
+    const i = idx - back;
+    if (i < 0) break;
+    recentHeavy += h.precipitation[i] || 0;
+  }
+  if (recentHeavy >= 1) return true;  // Heavy rain in last 2 hrs → wet
+
+  // Check for light rain within drying window
   let totalMm = 0;
   let lastRainHoursAgo = null;
   for (let back = 1; back <= 5; back++) {
     const i = idx - back;
     if (i < 0) break;
     const mm = h.precipitation[i] || 0;
-    if (mm >= 0.5) totalMm += mm;  // Only count real rain, ignore trace amounts
+    if (mm >= 0.5) totalMm += mm;
     if (mm >= 0.5 && lastRainHoursAgo === null) lastRainHoursAgo = back;
   }
   if (lastRainHoursAgo === null) return false;
@@ -832,7 +846,7 @@ function sessionScore(sess, dayStart, h, c) {
   const scores = [];
   for (let hr = sess.start; hr < sess.end; hr++) {
     const idx = dayStart + hr;
-    if (isCourtWet(idx, h)) { scores.push('wet'); continue; }
+    if (isCourtWet(idx, h, h.precipitation_probability[idx], h.weathercode[idx])) { scores.push('wet'); continue; }
     scores.push(scoreHour(
       h.temperature_2m[idx], h.windspeed_10m[idx], h.windgusts_10m[idx],
       h.precipitation_probability[idx], h.weathercode[idx], c.windFactor,
