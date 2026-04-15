@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Pickl-IQ" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Crect x='43' y='62' width='14' height='28' rx='5' fill='%23ffffff'/%3E%3Crect x='18' y='8' width='64' height='58' rx='12' fill='%23fbbf24'/%3E%3Crect x='18' y='33' width='64' height='5' fill='%23f59e0b'/%3E%3Ccircle cx='34' cy='21' r='4' fill='%232563eb'/%3E%3Ccircle cx='50' cy='21' r='4' fill='%232563eb'/%3E%3Ccircle cx='66' cy='21' r='4' fill='%232563eb'/%3E%3Ccircle cx='34' cy='46' r='4' fill='%232563eb'/%3E%3Ccircle cx='50' cy='46' r='4' fill='%232563eb'/%3E%3Ccircle cx='66' cy='46' r='4' fill='%232563eb'/%3E%3C/svg%3E" />
   <style>
     :root {
       --green:   #16a34a;
@@ -80,6 +81,8 @@
     #best-day-banner .bdlabel { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.8; margin-bottom: 4px; }
     #best-day-banner .bdmain  { font-size: 1rem; font-weight: 700; }
     #best-day-banner .bdsub   { font-size: 0.8rem; opacity: 0.85; margin-top: 3px; }
+    .bdcal { font-size:0.72rem; opacity:0.9; cursor:pointer; margin-top:6px; }
+    .bdcal a { color:#fff; text-decoration:underline; opacity:0.9; }
 
     /* ── Section label ── */
     .section-label {
@@ -380,6 +383,10 @@
     .pill-wet { background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; }
     body.dark .sp-wet   { background:#0c1a2e; color:#60a5fa; }
     body.dark .pill-wet { background:#0c1a2e; color:#60a5fa; border-color:#1d4ed8; }
+    .sp-heat   { background:#fee2e2; color:#991b1b; }
+    .pill-heat { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; }
+    body.dark .sp-heat   { background:#1c0000; color:#fca5a5; }
+    body.dark .pill-heat { background:#1c0000; color:#fca5a5; border-color:#991b1b; }
 
     @media (max-width: 640px) {
       /* Header */
@@ -638,17 +645,20 @@
     <span id="status-text">Loading…</span>
     <button class="hbtn" id="themeBtn" onclick="toggleDark()">🌙 Dark</button>
     <button class="hbtn" onclick="shareDay()">📤 Share</button>
+    <button class="hbtn" onclick="shareWhatsApp()">💬 WhatsApp</button>
     <button class="hbtn" id="installBtn" style="display:none" onclick="installApp()">📲 Install</button>
   </div>
 </header>
 
 <main>
+  <div id="pull-indicator" style="text-align:center;padding:0;height:0;overflow:hidden;transition:height 0.2s;color:var(--muted);font-size:0.82rem">⟳ Pull to refresh</div>
 
   <!-- Best day banner -->
   <div id="best-day-banner">
     <div class="bdlabel">🏆 Best play window coming up</div>
     <div class="bdmain" id="bdmain">—</div>
     <div class="bdsub"  id="bdsub">—</div>
+    <div class="bdcal" id="bdcal"></div>
   </div>
 
   <!-- Zip weather lookup -->
@@ -672,6 +682,7 @@
     <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Windy (15–20 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--red)"></span> Too Windy / Rain</span>
     <span class="legend-item"><span class="ldot" style="background:#3b82f6"></span> 💧 Wet</span>
+    <span class="legend-item"><span class="ldot" style="background:#dc2626"></span> 🔥 Extreme Heat</span>
   </div>
 
   <!-- 10-day grid -->
@@ -757,10 +768,13 @@ const WMO = {
 function wmo(c){return WMO[c]||{label:'Unknown',icon:'❓',rain:false};}
 
 // ── Score ─────────────────────────────────────────────────────────────────
-function scoreHour(temp,wind,gust,pp,code,wf=1) {
+function scoreHour(temp,wind,gust,pp,code,wf=1,feel) {
   const ew=wind*wf, eg=gust*wf, w=wmo(code);
   // Rain
   if((w.rain&&pp>30)||pp>50||code>=95) return 'rain';
+  // Heat index (apparent temperature)
+  if(feel!==undefined&&feel>105) return 'heat';
+  if(feel!==undefined&&feel>100) return 'windy';
   // Temperature extremes
   if(temp>105||temp<35) return 'bad';
   if(temp>100||temp<42) return 'windy';
@@ -773,14 +787,14 @@ function scoreHour(temp,wind,gust,pp,code,wf=1) {
 }
 function dayScore(hours){
   const s=hours.map(h=>h.score);
-  if(s.every(x=>x==='bad'||x==='rain'))return'bad';
+  if(s.every(x=>x==='bad'||x==='rain'||x==='heat'))return'bad';
   if(s.some(x=>x==='rain'))return'marg';
   if(s.every(x=>x==='perfect'))return'perfect';
   if(s.every(x=>x==='perfect'||x==='great'))return'great';
   if(s.filter(x=>x==='perfect'||x==='great'||x==='ok').length>=s.length/2)return'ok';
   return'marg';
 }
-const SCORE_RANK={perfect:4,great:3,ok:2,marg:1,windy:1,wet:0,bad:0,rain:0};
+const SCORE_RANK={perfect:4,great:3,ok:2,marg:1,windy:1,wet:0,bad:0,rain:0,heat:0};
 const PILL={
   perfect:'<span class="rec-pill pill-perfect">⭐ Perfect</span>',
   great:  '<span class="rec-pill pill-great">✓ Great</span>',
@@ -789,6 +803,7 @@ const PILL={
   rain:   '<span class="rec-pill pill-rain">🌧 Rain</span>',
   bad:    '<span class="rec-pill pill-bad">✗ Too Windy</span>',
   wet:    '<span class="rec-pill pill-wet">💧 Wet</span>',
+  heat:   '<span class="rec-pill pill-heat">🔥 Extreme Heat</span>',
 };
 
 // ── Weather fetch ─────────────────────────────────────────────────────────
@@ -844,7 +859,7 @@ function renderBestDay() {
       let sc=0;
       for(let hr=sess.start;hr<sess.end;hr++){
         const idx=dayStart+hr;
-        sc+=SCORE_RANK[scoreHour(h.temperature_2m[idx],h.windspeed_10m[idx],h.windgusts_10m[idx],h.precipitation_probability[idx],h.weathercode[idx],c.windFactor)]||0;
+        sc+=SCORE_RANK[scoreHour(h.temperature_2m[idx],h.windspeed_10m[idx],h.windgusts_10m[idx],h.precipitation_probability[idx],h.weathercode[idx],c.windFactor,h.apparent_temperature[idx])]||0;
       }
       if(sc>best.score){best={score:sc,dayIdx:i,sess};}
     }
@@ -869,6 +884,14 @@ function renderBestDay() {
   document.getElementById('bdmain').textContent=`${lbl} · ${best.sess.label} at ${c.name}`;
   document.getElementById('bdsub').textContent=`${wmo(d.weathercode[best.dayIdx]).icon} ${windRange} wind · ${sessTemp}°F · ${formatHour(best.sess.start)}–${formatHour(best.sess.end)}`;
   document.getElementById('best-day-banner').style.display='block';
+  // Google Calendar link
+  const calDate=d.time[best.dayIdx].replace(/-/g,'');
+  const pad2=n=>String(n).padStart(2,'0');
+  const calStart=`${calDate}T${pad2(best.sess.start)}0000`;
+  const calEnd=`${calDate}T${pad2(best.sess.end===24?23:best.sess.end)}${best.sess.end===24?'59':'00'}00`;
+  const calDetails=encodeURIComponent(`${wmo(d.weathercode[best.dayIdx]).icon} ${windRange} wind, ${sessTemp}°F at ${c.name}`);
+  const calUrl=`https://calendar.google.com/calendar/event?action=TEMPLATE&text=Pickleball+Session&dates=${calStart}/${calEnd}&details=${calDetails}`;
+  document.getElementById('bdcal').innerHTML=`<a href="${calUrl}" target="_blank">📅 Add to Calendar</a>`;
 }
 
 // ── Forecast grid ─────────────────────────────────────────────────────────
@@ -887,7 +910,7 @@ function renderForecast() {
     for(const sess of sessions)
       for(let hr=sess.start;hr<sess.end;hr++){
         const idx=dayStart+hr;
-        ph.push({score:scoreHour(h.temperature_2m[idx],h.windspeed_10m[idx],h.windgusts_10m[idx],h.precipitation_probability[idx],h.weathercode[idx],c.windFactor)});
+        ph.push({score:scoreHour(h.temperature_2m[idx],h.windspeed_10m[idx],h.windgusts_10m[idx],h.precipitation_probability[idx],h.weathercode[idx],c.windFactor,h.apparent_temperature[idx])});
       }
     const overall=ph.length===0?'bad':dayScore(ph);
     const dotCls={great:'dot-great',ok:'dot-ok',marg:'dot-marg',bad:'dot-bad'}[overall]||'dot-bad';
@@ -899,7 +922,7 @@ function renderForecast() {
       sess, score: sessionScore(sess, dayStart, h, c)
     }));
     const notPlayable = sessions.length > 0 &&
-      sessScores.every(s => s.score === 'bad' || s.score === 'rain');
+      sessScores.every(s => s.score === 'bad' || s.score === 'rain' || s.score === 'heat');
 
     let sessHtml = '';
     if (sessions.length === 0) {
@@ -908,8 +931,8 @@ function renderForecast() {
       sessHtml = '<div class="dc-sessions"><div class="dc-sess-pill sp-bad">Not playable</div></div>';
     } else {
       sessHtml = '<div class="dc-sessions">' + sessScores.map(({sess, score}) => {
-        const cls = {perfect:'sp-perfect',great:'sp-great',ok:'sp-ok',windy:'sp-windy',bad:'sp-bad',rain:'sp-rain',wet:'sp-wet'}[score]||'sp-bad';
-        const lbl = {perfect:'⭐ Perfect',great:'Great',ok:'OK',windy:'Windy',bad:'Bad',rain:'Rain',wet:'💧 Wet'}[score]||score;
+        const cls = {perfect:'sp-perfect',great:'sp-great',ok:'sp-ok',windy:'sp-windy',bad:'sp-bad',rain:'sp-rain',wet:'sp-wet',heat:'sp-heat'}[score]||'sp-bad';
+        const lbl = {perfect:'⭐ Perfect',great:'Great',ok:'OK',windy:'Windy',bad:'Bad',rain:'Rain',wet:'💧 Wet',heat:'🔥 Heat'}[score]||score;
         return `<div class="dc-sess-pill ${cls}">${sessAbbr(sess.label)} ${lbl}</div>`;
       }).join('') + '</div>';
     }
@@ -991,9 +1014,9 @@ function showDetail(dayIdx){
       const dir =h.winddirection_10m[idx];
       const pp  =h.precipitation_probability[idx]||0;
       const code=h.weathercode[idx];
-      const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor);
+      const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor,feel);
       const wet=isCourtWet(idx,h);
-      const pill=score==='rain'?PILL.rain:wet?PILL.wet:score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
+      const pill=score==='rain'?PILL.rain:score==='heat'?PILL.heat:wet?PILL.wet:score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
         score==='windy'?PILL.windy:PILL.bad;
       const feelStr=Math.round(feel)!==Math.round(temp)
         ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
@@ -1011,6 +1034,7 @@ function showDetail(dayIdx){
     html+=`</div></div>`;
   }
   html+=buildTips(dayIdx,sessions,c);
+  html+=buildSparkline(dayIdx);
   panel.innerHTML=html;
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -1033,6 +1057,57 @@ function buildTips(dayIdx,sessions,c){
   if(c.name.includes('Otto')&&maxW>10) tips.push('💨 Otto tends to be windier — Maxwell Creek or Wylie may be more comfortable today.');
   if(tips.length===0)return'';
   return`<div class="tips-block"><div class="tips-title">Tips for Today</div>${tips.map(t=>`<p>${t}</p>`).join('')}</div>`;
+}
+
+// ── Wind sparkline ───────────────────────────────────────────────────────
+function buildSparkline(dayIdx){
+  const h=weatherData.hourly, c=COURTS[selectedCourt];
+  const dayStart=dayIdx*24;
+  const startHr=6, endHr=24; // 6am to 11pm
+  const hours=[];
+  for(let hr=startHr;hr<endHr;hr++){
+    const idx=dayStart+hr;
+    hours.push(Math.round(h.windspeed_10m[idx]*c.windFactor));
+  }
+  const maxVal=Math.max(...hours,20);
+  const w=100, ht=60, padL=0, padR=0, padT=4, padB=14;
+  const plotW=w-padL-padR, plotH=ht-padT-padB;
+  const pts=hours.map((v,i)=>{
+    const x=padL+(i/(hours.length-1))*plotW;
+    const y=padT+plotH-(v/maxVal)*plotH;
+    return {x,y,v};
+  });
+  const polyPts=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  // Build gradient fill segments
+  let fillPath=`M ${pts[0].x.toFixed(1)},${(padT+plotH).toFixed(1)} L ${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for(let i=1;i<pts.length;i++) fillPath+=` L ${pts[i].x.toFixed(1)},${pts[i].y.toFixed(1)}`;
+  fillPath+=` L ${pts[pts.length-1].x.toFixed(1)},${(padT+plotH).toFixed(1)} Z`;
+  // Threshold line at 15mph
+  const threshY=padT+plotH-(15/maxVal)*plotH;
+  // X-axis labels: 8a, 12p, 5p, 8p, 11p
+  const labelHrs=[{hr:8,lbl:'8a'},{hr:12,lbl:'12p'},{hr:17,lbl:'5p'},{hr:20,lbl:'8p'},{hr:23,lbl:'11p'}];
+  const labels=labelHrs.map(l=>{
+    const i=l.hr-startHr;
+    if(i<0||i>=hours.length) return '';
+    const x=padL+(i/(hours.length-1))*plotW;
+    return `<text x="${x.toFixed(1)}" y="${ht-1}" text-anchor="middle" font-size="3.2" fill="currentColor" opacity="0.5">${l.lbl}</text>`;
+  }).join('');
+  // Colored segments via clip paths — green below 10, yellow 10-15, red above 15
+  const y10=padT+plotH-(10/maxVal)*plotH;
+  const y15=padT+plotH-(15/maxVal)*plotH;
+  const svg=`<svg viewBox="0 0 ${w} ${ht}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:60px" preserveAspectRatio="none">
+    <defs>
+      <clipPath id="spark-clip-${dayIdx}"><path d="${fillPath}"/></clipPath>
+    </defs>
+    <rect x="${padL}" y="${padT}" width="${plotW}" height="${y10-padT}" fill="#dcfce7" opacity="0.3" clip-path="url(#spark-clip-${dayIdx})"/>
+    <rect x="${padL}" y="${y15}" width="${plotW}" height="${y10-y15}" fill="#fef9c3" opacity="0.4" clip-path="url(#spark-clip-${dayIdx})"/>
+    <rect x="${padL}" y="${padT}" width="${plotW}" height="${y15-padT}" fill="#fee2e2" opacity="0.4" clip-path="url(#spark-clip-${dayIdx})"/>
+    <line x1="${padL}" y1="${threshY.toFixed(1)}" x2="${padL+plotW}" y2="${threshY.toFixed(1)}" stroke="#dc2626" stroke-width="0.4" stroke-dasharray="2,1.5" opacity="0.5"/>
+    <text x="${padL+plotW+1}" y="${(threshY+1.2).toFixed(1)}" font-size="2.8" fill="#dc2626" opacity="0.6">15</text>
+    <polyline points="${polyPts}" fill="none" stroke="#2563eb" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
+    ${labels}
+  </svg>`;
+  return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:12px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:8px">Wind Speed Throughout Day</div>${svg}</div>`;
 }
 
 // ── Wet court check ───────────────────────────────────────────────────────
@@ -1065,12 +1140,14 @@ function sessionScore(sess, dayStart, h, c) {
     if (isCourtWet(idx, h)) { scores.push('wet'); continue; }
     scores.push(scoreHour(
       h.temperature_2m[idx], h.windspeed_10m[idx], h.windgusts_10m[idx],
-      h.precipitation_probability[idx], h.weathercode[idx], c.windFactor
+      h.precipitation_probability[idx], h.weathercode[idx], c.windFactor,
+      h.apparent_temperature[idx]
     ));
   }
   if (scores.length === 0) return 'bad';
   if (scores.every(s => s === 'rain')) return 'rain';
-  if (scores.every(s => s === 'bad' || s === 'rain')) return 'bad';
+  if (scores.every(s => s === 'bad' || s === 'rain' || s === 'heat')) return 'bad';
+  if (scores.every(s => s === 'heat')) return 'heat';
   if (scores.every(s => s === 'wet')) return 'wet';
   if (scores.every(s => s === 'perfect')) return 'perfect';
   if (scores.every(s => s === 'perfect' || s === 'great')) return 'great';
@@ -1117,6 +1194,21 @@ function shareDay(){
   else{navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));}
 }
 
+function shareWhatsApp(){
+  if(!weatherData)return;
+  const d=weatherData.daily, c=COURTS[selectedCourt];
+  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const date=new Date(d.time[selectedDayIdx]+'T12:00:00');
+  const maxW=Math.round(d.windspeed_10m_max[selectedDayIdx]*c.windFactor);
+  const maxG=Math.round(d.windgusts_10m_max[selectedDayIdx]*c.windFactor);
+  const hi=Math.round(d.temperature_2m_max[selectedDayIdx]);
+  const lo=Math.round(d.temperature_2m_min[selectedDayIdx]);
+  const rec=maxW<=12&&!wmo(d.weathercode[selectedDayIdx]).rain?'✅ Great conditions!':maxW<=16?'⚠️ Borderline wind':'🚫 Too windy/rainy';
+  const text=`🏓 Pickl-IQ Forecast\n${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()} · ${c.name}\n${wmo(d.weathercode[selectedDayIdx]).icon} ${wmo(d.weathercode[selectedDayIdx]).label}\n🌡 ${hi}°/${lo}°F  💨 Wind: ${maxW} mph  Gust: ${maxG} mph\n${rec}\nhttps://nadeemkhawaja.github.io/Pickl-IQ`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');
+}
+
 // ── Toast ─────────────────────────────────────────────────────────────────
 function showToast(msg){
   const t=document.getElementById('toast');
@@ -1149,6 +1241,13 @@ if (localStorage.getItem('pickl-theme') === 'dark') {
   document.body.classList.add('dark');
   document.getElementById('themeBtn').textContent = '☀️ Light';
 }
+
+// ── Pull-to-refresh ──────────────────────────────────────────────────
+let pullStartY = 0, pulling = false;
+const mainEl = document.querySelector('main');
+mainEl.addEventListener('touchstart', e => { if (window.scrollY === 0) { pullStartY = e.touches[0].clientY; pulling = true; }});
+mainEl.addEventListener('touchmove', e => { if (!pulling) return; const dy = e.touches[0].clientY - pullStartY; const indicator = document.getElementById('pull-indicator'); if (dy > 0 && dy < 150) { indicator.style.height = Math.min(dy * 0.5, 50) + 'px'; indicator.textContent = dy > 80 ? '↓ Release to refresh' : '⟳ Pull to refresh'; }});
+mainEl.addEventListener('touchend', e => { const indicator = document.getElementById('pull-indicator'); if (parseInt(indicator.style.height) > 35) { indicator.textContent = 'Refreshing…'; loadWeather(); } indicator.style.height = '0'; pulling = false; });
 
 // ── Init ──────────────────────────────────────────────────────────────────
 loadZip('75094');
