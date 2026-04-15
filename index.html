@@ -337,7 +337,7 @@
         grid-template-columns: 46px 22px 58px 72px 32px 1fr;
         gap: 4px; font-size: 0.73rem; padding: 5px 6px;
       }
-      .sess-best-line { display: none; }
+      .sess-best-line { font-size: 0.7rem; }
 
       /* Day summary badges — smaller */
       .day-summary { gap: 7px; }
@@ -798,7 +798,6 @@ function showDetail(dayIdx){
       const isBest = hd.hr===bestHr;
       const zebraCls = (!isNow && !isBest && i%2===1) ? 'zebra' : '';
       const rowCls = isNow?'hour-now':isBest?'best-hour':zebraCls;
-      const bestTag = isBest?'<span class="best-badge">🏆 Best</span>':'';
       html+=`
         <div class="hour-row ${rowCls}">
           <span class="hr-time">${formatHour(hd.hr)}</span>
@@ -806,7 +805,7 @@ function showDetail(dayIdx){
           <span>${Math.round(hd.temp)}°F${feelStr}</span>
           <span style="font-weight:600"><span style="color:${wc(hd.wind)}">${hd.wind}</span><span style="color:var(--muted);font-weight:400;font-size:0.72rem"> / </span><span style="color:${gc(hd.gust)};font-size:0.72rem">${hd.gust}</span></span>
           <span class="hr-rain">${hd.pp}%</span>
-          <span>${pill}${bestTag}</span>
+          <span>${pill}</span>
         </div>`;
     });
     html+=`</div></div>`;
