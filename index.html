@@ -749,7 +749,7 @@ function showDetail(dayIdx){
 
   for(const sess of sessions){
     html+=`<div class="session-block">
-      <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end)}</h3>
+      <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end-1)}</h3>
       <div class="hour-rows">
         <div class="hour-row" style="background:transparent;border-color:transparent;font-size:0.67rem;color:var(--muted);font-weight:600">
           <span>Time</span><span>Sky</span><span>Temp/Feel</span><span>Wind / Gust</span><span>Rain%</span><span>Play?</span>
@@ -805,40 +805,26 @@ function buildTips(dayIdx,sessions,c){
 
 
 // ── Wet court check ───────────────────────────────────────────────────────
-// Smart logic: mark wet only if:
-// 1) Currently raining (pp > 50% or active rain code), OR
-// 2) Recent heavy rain (>= 1mm in last 2 hrs), OR
-// 3) Light rain within drying window (< 1mm, < 5 hrs ago)
+// Simple, aggressive logic for TX climate:
+// 1) Currently raining (pp > 50% or active rain weather code) → wet
+// 2) Heavy recent rain (>= 2mm in last 2 hrs) → wet
+// Otherwise → playable (let wind/temp scoring decide)
 function isCourtWet(idx, h, pp, code) {
   if (!h.precipitation) return false;
-  const rainCodes = [45, 48, 51, 53, 55, 61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99];
+  const rainCodes = [51, 53, 55, 61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99];
   const isRainingNow = pp > 50 || rainCodes.includes(code);
 
-  // If actively raining, courts are wet
+  // If actively raining right now, courts are wet
   if (isRainingNow) return true;
 
-  // Check for recent heavy rain (>= 1mm in last 2 hours)
-  let recentHeavy = 0;
+  // Check for heavy recent rain (>= 2mm in last 2 hours)
+  let recentMm = 0;
   for (let back = 1; back <= 2; back++) {
     const i = idx - back;
     if (i < 0) break;
-    recentHeavy += h.precipitation[i] || 0;
+    recentMm += h.precipitation[i] || 0;
   }
-  if (recentHeavy >= 1) return true;  // Heavy rain in last 2 hrs → wet
-
-  // Check for light rain within drying window
-  let totalMm = 0;
-  let lastRainHoursAgo = null;
-  for (let back = 1; back <= 5; back++) {
-    const i = idx - back;
-    if (i < 0) break;
-    const mm = h.precipitation[i] || 0;
-    if (mm >= 0.5) totalMm += mm;
-    if (mm >= 0.5 && lastRainHoursAgo === null) lastRainHoursAgo = back;
-  }
-  if (lastRainHoursAgo === null) return false;
-  const dryAfter = totalMm < 2 ? 2 : totalMm < 8 ? 4 : totalMm < 20 ? 5 : 6;
-  return lastRainHoursAgo <= dryAfter;
+  return recentMm >= 2;
 }
 
 // ── Session score (per session, more granular than dayScore) ──────────────
