@@ -482,8 +482,8 @@ function buildSessions(date) {
   const isWE = dow===0||dow===6;
   const sessions = [];
 
-  // Morning — every day (8 AM, 9 AM, 10 AM)
-  sessions.push({ label:'Morning Session', start:8, end:11 });
+  // Morning — every day (7 AM, 8 AM, 9 AM, 10 AM)
+  sessions.push({ label:'Morning Session', start:7, end:11 });
 
   // Evening — every day (5 PM through 10 PM)
   sessions.push({ label:'Evening Session', start:17, end:23 });
