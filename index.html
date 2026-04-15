@@ -90,25 +90,6 @@
       color: var(--muted); font-weight: 600; margin-bottom: 10px;
     }
 
-    /* ── Court tabs ── */
-    .court-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-    .court-tab {
-      flex: 1; min-width: 175px;
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 14px; padding: 13px 15px;
-      cursor: pointer; transition: all 0.18s; text-align: left;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-    .court-tab:hover  { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
-    .court-tab.active { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); background: #fff; }
-    .court-tab .ct-name { font-weight: 700; font-size: 0.9rem; color: var(--text); }
-    .court-tab .ct-meta { font-size: 0.72rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
-    .ct-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-    .ct-map {
-      display: inline-block; margin-top: 8px; font-size: 0.72rem;
-      color: var(--blue); text-decoration: none; font-weight: 600;
-    }
-    .ct-map:hover { text-decoration: underline; }
 
     /* ── Zip search ── */
     .zip-search { display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
@@ -139,35 +120,6 @@
     .btn-primary:hover { background: #1d4ed8; }
     .btn-ghost { background: #fff; color: var(--text); border-color: var(--border); }
     .btn-ghost:hover { background: var(--bg); }
-
-    /* ── Players panel ── */
-    #players-panel {
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 14px; padding: 18px; margin-bottom: 18px; display: none;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .players-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .players-head h3 { font-size: 0.95rem; font-weight: 700; }
-    .player-add { display: flex; gap: 8px; margin-bottom: 14px; }
-    .player-add input {
-      flex: 1; background: var(--bg); border: 1.5px solid var(--border);
-      color: var(--text); border-radius: 9px; padding: 8px 13px; font-size: 0.85rem;
-    }
-    .player-add input:focus { outline: none; border-color: var(--blue); background: #fff; }
-    .player-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
-    .player-chip {
-      background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 20px; padding: 5px 12px 5px 8px;
-      font-size: 0.82rem; display: flex; align-items: center; gap: 7px;
-    }
-    .p-avatar {
-      width: 24px; height: 24px; border-radius: 50%; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
-    }
-    .p-remove { cursor: pointer; color: var(--muted); font-size: 0.85rem; margin-left: 2px; }
-    .p-remove:hover { color: var(--red); }
-    .no-players { color: var(--muted); font-size: 0.82rem; }
 
     /* ── Legend ── */
     .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; font-size: 0.75rem; }
@@ -238,16 +190,24 @@
     .hour-rows { display: flex; flex-direction: column; gap: 5px; }
     .hour-row {
       display: grid;
-      grid-template-columns: 58px 32px 76px 108px 54px 68px 1fr;
+      grid-template-columns: 58px 32px 76px 108px 54px 1fr;
       gap: 8px; align-items: center; font-size: 0.8rem;
       padding: 5px 8px; border-radius: 8px; background: #fff;
       border: 1px solid var(--border);
     }
     .hr-time { color: var(--muted); font-size: 0.75rem; }
     .hr-icon { font-size: 1rem; text-align: center; }
-    .hr-dir  { color: var(--muted); font-size: 0.75rem; }
     .hr-rain { color: #2563eb; font-size: 0.78rem; }
-    .wind-arrow { margin-right: 2px; }
+    .hour-row.hour-now { border-left: 3px solid var(--blue); background: var(--blue-bg); }
+
+    /* ── Weekly summary strip ── */
+    .week-strip { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; }
+    .ws-day { flex:1; min-width:44px; text-align:center; padding:8px 4px; background:var(--card); border:1.5px solid var(--border); border-radius:10px; cursor:pointer; }
+    .ws-day:hover { border-color:var(--blue); }
+    .ws-dow { font-size:0.6rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.5px; }
+    .ws-dots { display:flex; justify-content:center; gap:4px; margin-top:4px; }
+    .ws-dot { width:8px; height:8px; border-radius:50%; }
+    body.dark .ws-day { background:var(--card); border-color:var(--border); }
 
     .rec-pill {
       display: inline-block; font-size: 0.66rem; font-weight: 700;
@@ -257,41 +217,8 @@
     .pill-ok    { background: var(--yel-bg);   color: var(--yellow); border: 1px solid #fde68a; }
     .pill-windy { background: var(--ora-bg);   color: var(--orange); border: 1px solid #fed7aa; }
     .pill-bad   { background: var(--red-bg);   color: var(--red);    border: 1px solid #fecaca; }
-    .pill-closed{ background: #f8fafc;         color: var(--muted);  border: 1px solid var(--border); }
     .pill-rain  { background: var(--blue-bg);  color: var(--blue);   border: 1px solid #bfdbfe; }
 
-    /* ── RSVP ── */
-    .rsvp-section {
-      margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--border);
-    }
-    .rsvp-label {
-      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--muted); font-weight: 700; margin-bottom: 10px;
-    }
-    .rsvp-rows { display: flex; flex-direction: column; gap: 6px; }
-    .rsvp-row  { display: flex; align-items: center; gap: 10px; }
-    .rsvp-name {
-      font-size: 0.82rem; font-weight: 600; min-width: 96px;
-      display: flex; align-items: center; gap: 7px; color: var(--text);
-    }
-    .r-avatar {
-      width: 26px; height: 26px; border-radius: 50%; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.66rem; font-weight: 700; flex-shrink: 0;
-    }
-    .rsvp-btns { display: flex; gap: 5px; }
-    .rsvp-btn {
-      border: 1.5px solid var(--border); background: #fff;
-      color: var(--muted); border-radius: 7px; padding: 3px 10px;
-      font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.14s;
-    }
-    .rsvp-btn:hover          { border-color: var(--blue); color: var(--text); }
-    .rsvp-btn.active-in    { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-    .rsvp-btn.active-maybe { background: var(--yel-bg);   border-color: var(--yellow); color: var(--yellow); }
-    .rsvp-btn.active-out   { background: var(--red-bg);   border-color: var(--red);   color: var(--red); }
-    .rsvp-summary { font-size: 0.75rem; color: var(--muted); margin-top: 9px; }
-    .rsvp-in    { color: var(--green); font-weight: 700; }
-    .rsvp-maybe { color: var(--yellow); font-weight: 700; }
 
     /* ── Tips ── */
     .tips-block {
@@ -346,23 +273,17 @@
     body.dark header  { background:#1e293b; border-color:#334155; box-shadow:0 1px 3px rgba(0,0,0,.3); }
     body.dark .hbtn   { background:#334155; border-color:#475569; color:#f1f5f9; }
     body.dark .hbtn:hover { background:#475569; }
-    body.dark .court-tab  { background:#1e293b; border-color:#334155; }
-    body.dark .court-tab.active { background:#1e3a5f; }
-    body.dark .court-tab:hover  { box-shadow:0 0 0 3px #1e3a5f; }
     body.dark .btn-ghost  { background:#1e293b; border-color:#334155; color:#f1f5f9; }
     body.dark .btn-ghost:hover { background:#334155; }
-    body.dark #players-panel  { background:#1e293b; border-color:#334155; }
-    body.dark .player-add input { background:#0f172a; border-color:#334155; }
-    body.dark .player-chip  { background:#0f172a; border-color:#334155; }
     body.dark .day-card  { background:#1e293b; border-color:#334155; }
     body.dark .day-card.selected { background:#1e3a5f; }
     body.dark #detail-panel { background:#1e293b; border-color:#334155; }
     body.dark .sum-badge  { background:#0f172a; border-color:#334155; }
     body.dark .session-block { background:#0f172a; border-color:#334155; }
     body.dark .hour-row   { background:#1e293b; border-color:#334155; }
+    body.dark .hour-row.hour-now { background: #1e3a5f; }
     body.dark .tips-block { background:#1e293b; border-color:#334155; }
     body.dark .tips-block p { color:#f1f5f9; }
-    body.dark .rsvp-btn   { background:#0f172a; border-color:#334155; }
     body.dark .sp-great { background:#052e16; color:#86efac; }
     body.dark .sp-ok    { background:#1c1400; color:#fde68a; }
     body.dark .sp-windy { background:#1c0a00; color:#fdba74; }
@@ -373,7 +294,6 @@
     body.dark .pill-windy  { background:#1c0a00; color:#fdba74; border-color:#9a3412; }
     body.dark .pill-bad    { background:#1c0000; color:#fca5a5; border-color:#991b1b; }
     body.dark .pill-rain   { background:#0c1a2e; color:#93c5fd; border-color:#1d4ed8; }
-    body.dark .pill-closed { background:#1e293b; color:#64748b; border-color:#334155; }
     body.dark .dc-no-sess  { color:#475569; }
     .sp-perfect { background:#bbf7d0; color:#065f46; }
     .pill-perfect { background:#ecfdf5; color:#065f46; border:1px solid #6ee7b7; }
@@ -398,22 +318,6 @@
       /* Main */
       main { padding: 12px 10px 40px; }
 
-      /* Court tabs — horizontal scroll */
-      .court-tabs {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        padding-bottom: 6px;
-        gap: 8px;
-      }
-      .court-tabs::-webkit-scrollbar { display: none; }
-      .court-tab {
-        min-width: 210px;
-        flex-shrink: 0;
-        scroll-snap-align: start;
-      }
-
       /* Day cards */
       .forecast-grid {
         grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
@@ -428,24 +332,18 @@
       .dc-sess-pill { font-size: 0.56rem; padding: 1px 4px; }
       .dc-no-sess { font-size: 0.58rem; }
 
-      /* Detail hour rows — 5 cols, hide rain% and dir */
+      /* Detail hour rows — 5 cols on mobile */
       .hour-row {
         grid-template-columns: 46px 24px 62px 84px 1fr;
         gap: 5px; font-size: 0.76rem; padding: 5px 7px;
       }
       .hr-rain { display: none; }
-      .hr-dir  { display: none; }
 
       /* Day summary badges — smaller */
       .day-summary { gap: 7px; }
       .sum-badge { padding: 6px 10px; }
       .sum-badge .vl { font-size: 0.85rem; }
       .sum-badge .lb { font-size: 0.6rem; }
-
-      /* RSVP — wrap buttons below name */
-      .rsvp-row { flex-wrap: wrap; }
-      .rsvp-name { min-width: unset; width: 100%; }
-      .rsvp-btn { padding: 3px 10px; font-size: 0.7rem; }
 
       /* Best day banner */
       #best-day-banner { padding: 12px 14px; }
@@ -460,155 +358,6 @@
       #detail-panel h2 { font-size: 0.95rem; }
     }
 
-    /* ── Page tabs ── */
-    .page-tabs {
-      display: flex; gap: 4px; margin-bottom: 20px;
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 12px; padding: 4px; width: fit-content;
-    }
-    .page-tab {
-      padding: 7px 20px; border-radius: 9px; font-size: 0.85rem; font-weight: 600;
-      cursor: pointer; border: none; background: transparent; color: var(--muted);
-      transition: all 0.15s;
-    }
-    .page-tab.active { background: var(--blue); color: #fff; }
-    .page-tab:hover:not(.active) { background: var(--bg); color: var(--text); }
-    body.dark .page-tabs { background: var(--card); border-color: var(--border); }
-    body.dark .page-tab:hover:not(.active) { background: #334155; }
-
-    /* ── Stats page ── */
-    .stats-section { margin-bottom: 24px; }
-    .stats-section-title {
-      font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.2px;
-      color: var(--muted); font-weight: 600; margin-bottom: 12px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-
-    /* ── Leaderboard ── */
-    .leaderboard {
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 14px; overflow: hidden;
-    }
-    .lb-row {
-      display: grid; grid-template-columns: 30px 1fr 40px 40px 56px 72px;
-      gap: 8px; align-items: center; padding: 12px 16px;
-      border-bottom: 1px solid var(--border); font-size: 0.83rem;
-    }
-    .lb-row:last-child { border-bottom: none; }
-    .lb-header {
-      font-size: 0.65rem; color: var(--muted); font-weight: 700;
-      text-transform: uppercase; background: var(--bg); padding: 8px 16px;
-    }
-    body.dark .lb-header { background: #0f172a; }
-    .lb-rank { font-weight: 800; color: var(--muted); font-size: 0.78rem; text-align: center; }
-    .lb-team { font-weight: 700; font-size: 0.85rem; }
-    .lb-win  { color: var(--green); font-weight: 700; text-align: center; }
-    .lb-loss { color: var(--muted); text-align: center; }
-    .lb-pct  { font-weight: 700; text-align: center; }
-    .lb-streak {
-      font-size: 0.72rem; font-weight: 700; padding: 2px 9px;
-      border-radius: 20px; text-align: center; display: inline-block;
-    }
-    .streak-w { background: var(--green-bg); color: var(--green); }
-    .streak-l { background: var(--red-bg);   color: var(--red); }
-    body.dark .leaderboard { background: var(--card); border-color: var(--border); }
-
-    /* ── Recent games ── */
-    .game-list { display: flex; flex-direction: column; gap: 8px; }
-    .game-item {
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 12px; padding: 12px 14px;
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    }
-    body.dark .game-item { background: var(--card); border-color: var(--border); }
-    .game-date  { font-size: 0.7rem; color: var(--muted); min-width: 68px; }
-    .game-teams { flex: 1; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; min-width: 0; }
-    .game-team  { font-size: 0.82rem; font-weight: 600; }
-    .game-score {
-      font-size: 1rem; font-weight: 800; padding: 3px 12px;
-      background: var(--bg); border-radius: 8px; white-space: nowrap;
-    }
-    body.dark .game-score { background: #0f172a; }
-    .game-winner { color: var(--green); }
-    .game-loser  { color: var(--muted); }
-    .game-vs     { color: var(--muted); font-size: 0.7rem; }
-    .game-delete {
-      color: var(--muted); cursor: pointer; font-size: 0.78rem; margin-left: auto;
-      padding: 4px 7px; border-radius: 6px; border: none; background: transparent;
-      flex-shrink: 0;
-    }
-    .game-delete:hover { color: var(--red); background: var(--red-bg); }
-
-    /* ── Squad manager ── */
-    .squad-grid { display: flex; flex-wrap: wrap; gap: 7px; }
-    .squad-chip {
-      background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: 20px; padding: 5px 10px 5px 6px;
-      font-size: 0.8rem; display: flex; align-items: center; gap: 6px;
-    }
-    body.dark .squad-chip { background: #0f172a; border-color: var(--border); }
-    .s-remove { color: var(--muted); cursor: pointer; font-size: 0.85rem; }
-    .s-remove:hover { color: var(--red); }
-    .squad-add-row { display: flex; gap: 8px; margin-bottom: 14px; }
-    .squad-add-row input {
-      flex: 1; background: var(--bg); border: 1.5px solid var(--border);
-      color: var(--text); border-radius: 9px; padding: 8px 12px; font-size: 0.85rem;
-    }
-    .squad-add-row input:focus { outline: none; border-color: var(--blue); }
-    body.dark .squad-add-row input { background: #0f172a; }
-
-    /* ── Log Game Modal ── */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-      z-index: 500; display: none; align-items: center; justify-content: center;
-      padding: 16px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--card); border-radius: 18px; padding: 26px;
-      width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.28);
-      border: 1.5px solid var(--border);
-    }
-    body.dark .modal { background: #1e293b; border-color: #334155; }
-    .modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 22px; }
-    .modal-section { margin-bottom: 18px; }
-    .modal-section label {
-      font-size: 0.69rem; text-transform: uppercase; letter-spacing: 1px;
-      color: var(--muted); font-weight: 700; display: block; margin-bottom: 8px;
-    }
-    .team-selects { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .team-selects select {
-      background: var(--bg); border: 1.5px solid var(--border); color: var(--text);
-      border-radius: 9px; padding: 8px 10px; font-size: 0.85rem; width: 100%;
-    }
-    .team-selects select:focus { outline: none; border-color: var(--blue); }
-    body.dark .team-selects select { background: #0f172a; border-color: #334155; }
-    .score-inputs { display: flex; align-items: center; gap: 14px; }
-    .score-inputs input {
-      width: 72px; background: var(--bg); border: 1.5px solid var(--border);
-      color: var(--text); border-radius: 9px; padding: 10px 12px;
-      font-size: 1.2rem; font-weight: 800; text-align: center;
-    }
-    .score-inputs input:focus { outline: none; border-color: var(--blue); }
-    body.dark .score-inputs input { background: #0f172a; border-color: #334155; }
-    .score-dash { font-size: 1.3rem; font-weight: 700; color: var(--muted); }
-    .modal-date-input {
-      background: var(--bg); border: 1.5px solid var(--border); color: var(--text);
-      border-radius: 9px; padding: 8px 12px; font-size: 0.85rem; width: 100%;
-    }
-    .modal-date-input:focus { outline: none; border-color: var(--blue); }
-    body.dark .modal-date-input { background: #0f172a; border-color: #334155; }
-    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
-
-    /* Stats responsive */
-    @media (max-width: 640px) {
-      .lb-row { grid-template-columns: 26px 1fr 34px 34px 46px 60px; gap: 5px; padding: 10px 10px; font-size: 0.78rem; }
-      .lb-header { font-size: 0.6rem; }
-      .game-item { gap: 8px; padding: 10px 10px; }
-      .team-selects { grid-template-columns: 1fr; }
-      .modal { padding: 18px; }
-    }
   </style>
 </head>
 <body>
@@ -686,7 +435,7 @@
   </div>
 
   <!-- 10-day grid -->
-  <div class="section-label">10-Day Forecast — tap a day for details</div>
+  <div class="section-label">14-Day Forecast — tap a day for details</div>
   <div id="forecastContainer">
     <div class="loading"><div class="spinner"></div>Fetching forecast…</div>
   </div>
@@ -809,14 +558,14 @@ const PILL={
 // ── Weather fetch ─────────────────────────────────────────────────────────
 async function loadWeather() {
   setStatus('Loading…', false);
-  document.getElementById('forecastContainer').innerHTML='<div class="loading"><div class="spinner"></div>Fetching 10-day forecast…</div>';
+  document.getElementById('forecastContainer').innerHTML='<div class="loading"><div class="spinner"></div>Fetching 14-day forecast…</div>';
   document.getElementById('detail-panel').style.display='none';
   document.getElementById('best-day-banner').style.display='none';
   const c=COURTS[selectedCourt];
   const url=`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}`
     +`&hourly=temperature_2m,apparent_temperature,precipitation_probability,precipitation,weathercode,windspeed_10m,windgusts_10m,winddirection_10m`
     +`&daily=weathercode,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,windspeed_10m_max,windgusts_10m_max,sunrise,sunset`
-    +`&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=10`;
+    +`&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FChicago&forecast_days=14`;
   try {
     const res=await fetch(url);
     if(!res.ok) throw new Error('HTTP '+res.status);
@@ -900,7 +649,27 @@ function renderForecast() {
   const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const c=COURTS[selectedCourt];
-  let html='<div class="forecast-grid">';
+
+  // Weekly summary strip (next 7 days)
+  const SCORE_DOT_COLOR={perfect:'#059669',great:'#16a34a',ok:'#ca8a04',windy:'#ea580c',bad:'#dc2626',rain:'#dc2626',heat:'#dc2626',wet:'#dc2626'};
+  let stripHtml='<div class="week-strip">';
+  const stripCount=Math.min(7,d.time.length);
+  for(let i=0;i<stripCount;i++){
+    const sDate=new Date(d.time[i]+'T12:00:00');
+    const sDow=DOW[sDate.getDay()];
+    const sSessions=buildSessions(sDate);
+    const sDayStart=i*24;
+    const mornSess=sSessions.find(s=>s.label.includes('Morning'));
+    const eveSess=sSessions.find(s=>s.label.includes('Evening'));
+    const mornScore=mornSess?sessionScore(mornSess,sDayStart,h,c):'bad';
+    const eveScore=eveSess?sessionScore(eveSess,sDayStart,h,c):'bad';
+    const mornColor=SCORE_DOT_COLOR[mornScore]||'#dc2626';
+    const eveColor=SCORE_DOT_COLOR[eveScore]||'#dc2626';
+    stripHtml+=`<div class="ws-day" onclick="showDetail(${i})"><div class="ws-dow">${sDow}</div><div class="ws-dots"><span class="ws-dot" style="background:${mornColor}"></span><span class="ws-dot" style="background:${eveColor}"></span></div></div>`;
+  }
+  stripHtml+='</div>';
+
+  let html=stripHtml+'<div class="forecast-grid">';
   for(let i=0;i<d.time.length;i++){
     const date=new Date(d.time[i]+'T12:00:00');
     const sunset=parseTime(d.sunset[i]);
@@ -1002,7 +771,7 @@ function showDetail(dayIdx){
       <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end)}</h3>
       <div class="hour-rows">
         <div class="hour-row" style="background:transparent;border-color:transparent;font-size:0.67rem;color:var(--muted);font-weight:600">
-          <span>Time</span><span>Sky</span><span>Temp/Feel</span><span>Wind / Gust</span><span>Rain%</span><span>Dir</span><span>Play?</span>
+          <span>Time</span><span>Sky</span><span>Temp/Feel</span><span>Wind / Gust</span><span>Rain%</span><span>Play?</span>
         </div>`;
 
     for(let hr=sess.start;hr<sess.end;hr++){
@@ -1011,7 +780,6 @@ function showDetail(dayIdx){
       const feel=h.apparent_temperature[idx];
       const wind=Math.round(h.windspeed_10m[idx]*c.windFactor);
       const gust=Math.round(h.windgusts_10m[idx]*c.windFactor);
-      const dir =h.winddirection_10m[idx];
       const pp  =h.precipitation_probability[idx]||0;
       const code=h.weathercode[idx];
       const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor,feel);
@@ -1020,21 +788,20 @@ function showDetail(dayIdx){
         score==='windy'?PILL.windy:PILL.bad;
       const feelStr=Math.round(feel)!==Math.round(temp)
         ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
+      const isNow = dayIdx===0 && hr===new Date().getHours();
       html+=`
-        <div class="hour-row">
+        <div class="hour-row ${isNow?'hour-now':''}">
           <span class="hr-time">${formatHour(hr)}</span>
           <span class="hr-icon">${wmo(code).icon}</span>
           <span>${Math.round(temp)}°F${feelStr}</span>
           <span style="font-weight:600"><span style="color:${wc(wind)}">${wind}</span><span style="color:var(--muted);font-weight:400;font-size:0.72rem"> / </span><span style="color:${gc(gust)};font-size:0.72rem">${gust}</span></span>
           <span class="hr-rain">${pp}%</span>
-          <span class="hr-dir"><span class="wind-arrow">${windArrow(dir)}</span>${windDir(dir)}</span>
           <span>${pill}</span>
         </div>`;
     }
     html+=`</div></div>`;
   }
   html+=buildTips(dayIdx,sessions,c);
-  html+=buildSparkline(dayIdx);
   panel.innerHTML=html;
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -1059,56 +826,6 @@ function buildTips(dayIdx,sessions,c){
   return`<div class="tips-block"><div class="tips-title">Tips for Today</div>${tips.map(t=>`<p>${t}</p>`).join('')}</div>`;
 }
 
-// ── Wind sparkline ───────────────────────────────────────────────────────
-function buildSparkline(dayIdx){
-  const h=weatherData.hourly, c=COURTS[selectedCourt];
-  const dayStart=dayIdx*24;
-  const startHr=6, endHr=24; // 6am to 11pm
-  const hours=[];
-  for(let hr=startHr;hr<endHr;hr++){
-    const idx=dayStart+hr;
-    hours.push(Math.round(h.windspeed_10m[idx]*c.windFactor));
-  }
-  const maxVal=Math.max(...hours,20);
-  const w=100, ht=60, padL=0, padR=0, padT=4, padB=14;
-  const plotW=w-padL-padR, plotH=ht-padT-padB;
-  const pts=hours.map((v,i)=>{
-    const x=padL+(i/(hours.length-1))*plotW;
-    const y=padT+plotH-(v/maxVal)*plotH;
-    return {x,y,v};
-  });
-  const polyPts=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-  // Build gradient fill segments
-  let fillPath=`M ${pts[0].x.toFixed(1)},${(padT+plotH).toFixed(1)} L ${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
-  for(let i=1;i<pts.length;i++) fillPath+=` L ${pts[i].x.toFixed(1)},${pts[i].y.toFixed(1)}`;
-  fillPath+=` L ${pts[pts.length-1].x.toFixed(1)},${(padT+plotH).toFixed(1)} Z`;
-  // Threshold line at 15mph
-  const threshY=padT+plotH-(15/maxVal)*plotH;
-  // X-axis labels: 8a, 12p, 5p, 8p, 11p
-  const labelHrs=[{hr:8,lbl:'8a'},{hr:12,lbl:'12p'},{hr:17,lbl:'5p'},{hr:20,lbl:'8p'},{hr:23,lbl:'11p'}];
-  const labels=labelHrs.map(l=>{
-    const i=l.hr-startHr;
-    if(i<0||i>=hours.length) return '';
-    const x=padL+(i/(hours.length-1))*plotW;
-    return `<text x="${x.toFixed(1)}" y="${ht-1}" text-anchor="middle" font-size="3.2" fill="currentColor" opacity="0.5">${l.lbl}</text>`;
-  }).join('');
-  // Colored segments via clip paths — green below 10, yellow 10-15, red above 15
-  const y10=padT+plotH-(10/maxVal)*plotH;
-  const y15=padT+plotH-(15/maxVal)*plotH;
-  const svg=`<svg viewBox="0 0 ${w} ${ht}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:60px" preserveAspectRatio="none">
-    <defs>
-      <clipPath id="spark-clip-${dayIdx}"><path d="${fillPath}"/></clipPath>
-    </defs>
-    <rect x="${padL}" y="${padT}" width="${plotW}" height="${y10-padT}" fill="#dcfce7" opacity="0.3" clip-path="url(#spark-clip-${dayIdx})"/>
-    <rect x="${padL}" y="${y15}" width="${plotW}" height="${y10-y15}" fill="#fef9c3" opacity="0.4" clip-path="url(#spark-clip-${dayIdx})"/>
-    <rect x="${padL}" y="${padT}" width="${plotW}" height="${y15-padT}" fill="#fee2e2" opacity="0.4" clip-path="url(#spark-clip-${dayIdx})"/>
-    <line x1="${padL}" y1="${threshY.toFixed(1)}" x2="${padL+plotW}" y2="${threshY.toFixed(1)}" stroke="#dc2626" stroke-width="0.4" stroke-dasharray="2,1.5" opacity="0.5"/>
-    <text x="${padL+plotW+1}" y="${(threshY+1.2).toFixed(1)}" font-size="2.8" fill="#dc2626" opacity="0.6">15</text>
-    <polyline points="${polyPts}" fill="none" stroke="#2563eb" stroke-width="0.8" stroke-linejoin="round" stroke-linecap="round"/>
-    ${labels}
-  </svg>`;
-  return `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:12px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:8px">Wind Speed Throughout Day</div>${svg}</div>`;
-}
 
 // ── Wet court check ───────────────────────────────────────────────────────
 // Looks back up to 9 hrs. Drying time scales with total mm fallen:
@@ -1161,10 +878,6 @@ function sessAbbr(label) {
   if (label.includes('Evening')) return '🌇';
   return '📅';
 }
-
-// ── Wind helpers ──────────────────────────────────────────────────────────
-function windDir(d){const D=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return D[Math.round(d/22.5)%16];}
-function windArrow(d){const A=['↓','↙','←','↖','↑','↗','→','↘'];return A[Math.round(d/45)%8];}
 
 // ── Avatar ────────────────────────────────────────────────────────────────
 function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);}
