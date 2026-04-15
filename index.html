@@ -805,24 +805,25 @@ function buildTips(dayIdx,sessions,c){
 
 
 // ── Wet court check ───────────────────────────────────────────────────────
-// Looks back up to 9 hrs. Drying time scales with total mm fallen:
-//   < 2mm  → dry after 3 hrs  (drizzle)
-//   2–8mm  → dry after 5 hrs  (moderate — e.g. rainy morning, dry by afternoon)
-//   8–20mm → dry after 7 hrs  (heavy — morning rain still wet at 5-7pm)
-//   > 20mm → dry after 9 hrs  (very heavy — wet all evening)
+// Looks back up to 5 hrs (faster window for TX climate). Drying time scaled for heat/sun:
+//   < 2mm  → dry after 2 hrs  (drizzle — quick evaporation)
+//   2–8mm  → dry after 4 hrs  (moderate — typical morning rain, dry by afternoon)
+//   8–20mm → dry after 5 hrs  (heavy — still wet early evening, dry later)
+//   > 20mm → dry after 6 hrs  (very heavy)
+// Only counts rain >= 0.5mm (ignores trace amounts)
 function isCourtWet(idx, h) {
   if (!h.precipitation) return false;
   let totalMm = 0;
   let lastRainHoursAgo = null;
-  for (let back = 1; back <= 9; back++) {
+  for (let back = 1; back <= 5; back++) {
     const i = idx - back;
     if (i < 0) break;
     const mm = h.precipitation[i] || 0;
-    totalMm += mm;
-    if (mm > 0.1 && lastRainHoursAgo === null) lastRainHoursAgo = back;
+    if (mm >= 0.5) totalMm += mm;  // Only count real rain, ignore trace amounts
+    if (mm >= 0.5 && lastRainHoursAgo === null) lastRainHoursAgo = back;
   }
   if (lastRainHoursAgo === null) return false;
-  const dryAfter = totalMm < 2 ? 3 : totalMm < 8 ? 5 : totalMm < 20 ? 7 : 9;
+  const dryAfter = totalMm < 2 ? 2 : totalMm < 8 ? 4 : totalMm < 20 ? 5 : 6;
   return lastRainHoursAgo <= dryAfter;
 }
 
