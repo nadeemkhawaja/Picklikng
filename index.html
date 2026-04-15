@@ -200,6 +200,8 @@
     .hr-icon { font-size: 1rem; text-align: center; }
     .hr-rain { color: #2563eb; font-size: 0.78rem; }
     .hour-row.hour-now { border-left: 3px solid var(--blue); background: var(--blue-bg); }
+    .hour-row.best-hour { border-left: 3px solid #059669; background: #f0fdf4; }
+    body.dark .hour-row.best-hour { background: #064e3b; border-left-color: #10b981; }
 
 .rec-pill {
       display: inline-block; font-size: 0.66rem; font-weight: 700;
@@ -419,7 +421,7 @@
     <span class="legend-item"><span class="ldot" style="background:#059669"></span> Perfect (&lt;5 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--green)"></span> Great (5–10 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--yellow)"></span> OK (10–15 mph)</span>
-    <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Windy (15–20 mph)</span>
+    <span class="legend-item"><span class="ldot" style="background:var(--orange)"></span> Windy (15–22 mph)</span>
     <span class="legend-item"><span class="ldot" style="background:var(--red)"></span> Too Windy / Rain</span>
     <span class="legend-item"><span class="ldot" style="background:#3b82f6"></span> 💧 Wet</span>
     <span class="legend-item"><span class="ldot" style="background:#dc2626"></span> 🔥 Extreme Heat</span>
@@ -518,11 +520,11 @@ function scoreHour(temp,wind,gust,pp,code,wf=1,feel) {
   // Temperature extremes
   if(temp>105||temp<35) return 'bad';
   if(temp>100||temp<42) return 'windy';
-  // Wind (user thresholds: <5 perfect, <10 great, <15 ok, <20 windy, 20+ bad)
-  if(eg>28||ew>20) return 'bad';
-  if(eg>22||ew>15) return 'windy';
-  if(eg>15||ew>10) return 'ok';
-  if(eg>8 ||ew>5)  return 'great';
+  // Wind (realistic pickleball thresholds — ball is 26g with 26-40 holes)
+  if(eg>32||ew>22) return 'bad';
+  if(eg>25||ew>15) return 'windy';
+  if(eg>18||ew>10) return 'ok';
+  if(eg>10||ew>5)  return 'great';
   return 'perfect';
 }
 function dayScore(hours){
@@ -702,9 +704,9 @@ function renderForecast() {
   showDetail(0);
 }
 
-function wc(w){return w<=5?'#059669':w<=10?'var(--green)':w<=15?'var(--yellow)':w<=20?'var(--orange)':'var(--red)';}
+function wc(w){return w<=5?'#059669':w<=10?'var(--green)':w<=15?'var(--yellow)':w<=22?'var(--orange)':'var(--red)';}
 // Gust has its own thresholds — high gusts dominate playability even with calm wind
-function gc(g){return g<=8?'#059669':g<=15?'var(--green)':g<=22?'var(--yellow)':g<=28?'var(--orange)':'var(--red)';}
+function gc(g){return g<=10?'#059669':g<=18?'var(--green)':g<=25?'var(--yellow)':g<=32?'var(--orange)':'var(--red)';}
 
 // ── Detail ────────────────────────────────────────────────────────────────
 function showDetail(dayIdx){
@@ -748,13 +750,8 @@ function showDetail(dayIdx){
   }
 
   for(const sess of sessions){
-    html+=`<div class="session-block">
-      <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end-1)}</h3>
-      <div class="hour-rows">
-        <div class="hour-row" style="background:transparent;border-color:transparent;font-size:0.67rem;color:var(--muted);font-weight:600">
-          <span>Time</span><span>Sky</span><span>Temp/Feel</span><span>Wind / Gust</span><span>Rain%</span><span>Play?</span>
-        </div>`;
-
+    // Pre-score all hours to find best 3
+    const hourData=[];
     for(let hr=sess.start;hr<sess.end;hr++){
       const idx=dayStart+hr;
       const temp=h.temperature_2m[idx];
@@ -764,19 +761,35 @@ function showDetail(dayIdx){
       const pp  =h.precipitation_probability[idx]||0;
       const code=h.weathercode[idx];
       const score=scoreHour(temp,wind/c.windFactor,gust/c.windFactor,pp,code,c.windFactor,feel);
-      const wet=isCourtWet(idx,h);
-      const pill=score==='rain'?PILL.rain:score==='heat'?PILL.heat:wet?PILL.wet:score==='perfect'?PILL.perfect:score==='great'?PILL.great:score==='ok'?PILL.ok:
-        score==='windy'?PILL.windy:PILL.bad;
-      const feelStr=Math.round(feel)!==Math.round(temp)
-        ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(feel)}°)</span>`:'';
-      const isNow = dayIdx===0 && hr===new Date().getHours();
+      const wet=isCourtWet(idx,h,pp,code);
+      const finalScore=score==='rain'?'rain':score==='heat'?'heat':wet?'wet':score;
+      hourData.push({hr,idx,temp,feel,wind,gust,pp,code,score,wet,finalScore,rank:SCORE_RANK[finalScore]||0});
+    }
+    // Find best 3 hours (rank >= 2 means at least "ok")
+    const bestHrs=hourData.filter(x=>x.rank>=2).sort((a,b)=>b.rank-a.rank).slice(0,3).map(x=>x.hr);
+
+    html+=`<div class="session-block">
+      <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end-1)}</h3>
+      <div class="hour-rows">
+        <div class="hour-row" style="background:transparent;border-color:transparent;font-size:0.67rem;color:var(--muted);font-weight:600">
+          <span>Time</span><span>Sky</span><span>Temp/Feel</span><span>Wind / Gust</span><span>Rain%</span><span>Play?</span>
+        </div>`;
+
+    for(const hd of hourData){
+      const pill=PILL[hd.finalScore]||PILL.bad;
+      const feelStr=Math.round(hd.feel)!==Math.round(hd.temp)
+        ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(hd.feel)}°)</span>`:'';
+      const isNow = dayIdx===0 && hd.hr===new Date().getHours();
+      const isBest = bestHrs.includes(hd.hr);
+      const rowCls = isNow?'hour-now':isBest?'best-hour':'';
+      const starTag = isBest?'<span style="font-size:0.65rem;margin-left:2px" title="Best hour">⭐</span>':'';
       html+=`
-        <div class="hour-row ${isNow?'hour-now':''}">
-          <span class="hr-time">${formatHour(hr)}</span>
-          <span class="hr-icon">${wmo(code).icon}</span>
-          <span>${Math.round(temp)}°F${feelStr}</span>
-          <span style="font-weight:600"><span style="color:${wc(wind)}">${wind}</span><span style="color:var(--muted);font-weight:400;font-size:0.72rem"> / </span><span style="color:${gc(gust)};font-size:0.72rem">${gust}</span></span>
-          <span class="hr-rain">${pp}%</span>
+        <div class="hour-row ${rowCls}">
+          <span class="hr-time">${formatHour(hd.hr)}${starTag}</span>
+          <span class="hr-icon">${wmo(hd.code).icon}</span>
+          <span>${Math.round(hd.temp)}°F${feelStr}</span>
+          <span style="font-weight:600"><span style="color:${wc(hd.wind)}">${hd.wind}</span><span style="color:var(--muted);font-weight:400;font-size:0.72rem"> / </span><span style="color:${gc(hd.gust)};font-size:0.72rem">${hd.gust}</span></span>
+          <span class="hr-rain">${hd.pp}%</span>
           <span>${pill}</span>
         </div>`;
     }
@@ -796,8 +809,8 @@ function buildTips(dayIdx,sessions,c){
   const code=d.weathercode[dayIdx];
   const tips=[];
   if(maxW<=12&&!wmo(code).rain) tips.push('✅ Conditions look great! Perfect day to bring new players or sharpen technique.');
-  if(maxW>16&&maxW<=20) tips.push('⚠️ Wind above ideal. Serve into the wind, keep shots low, and dink cross-court more.');
-  if(maxG>22) tips.push('🚫 High gusts expected — ball control will be difficult. Consider skipping or playing casually.');
+  if(maxW>15&&maxW<=22) tips.push('⚠️ Wind above ideal. Serve into the wind, keep shots low, and dink cross-court more.');
+  if(maxG>25) tips.push('🚫 High gusts expected — ball control will be difficult. Consider skipping or playing casually.');
   if(precip>0.1||wmo(code).rain) tips.push('🌧️ Rain expected. Courts may be wet — check before heading out.');
   if(tips.length===0)return'';
   return`<div class="tips-block"><div class="tips-title">Tips for Today</div>${tips.map(t=>`<p>${t}</p>`).join('')}</div>`;
