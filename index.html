@@ -188,20 +188,25 @@
       font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.2px;
       color: var(--muted); font-weight: 700; margin-bottom: 12px;
     }
-    .hour-rows { display: flex; flex-direction: column; gap: 5px; }
+    .hour-rows { display: flex; flex-direction: column; gap: 4px; }
     .hour-row {
       display: grid;
       grid-template-columns: 58px 32px 76px 108px 54px 1fr;
       gap: 8px; align-items: center; font-size: 0.8rem;
-      padding: 5px 8px; border-radius: 8px; background: #fff;
+      padding: 6px 10px; border-radius: 8px; background: #fff;
       border: 1px solid var(--border);
     }
-    .hr-time { color: var(--muted); font-size: 0.75rem; }
+    .hour-row.zebra { background: #f8fafc; }
+    .hr-time { color: var(--muted); font-size: 0.75rem; white-space: nowrap; }
     .hr-icon { font-size: 1rem; text-align: center; }
     .hr-rain { color: #2563eb; font-size: 0.78rem; }
     .hour-row.hour-now { border-left: 3px solid var(--blue); background: var(--blue-bg); }
-    .hour-row.best-hour { border-left: 3px solid #059669; background: #f0fdf4; }
+    .hour-row.best-hour { border-left: 3px solid #059669; background: #ecfdf5; }
     body.dark .hour-row.best-hour { background: #064e3b; border-left-color: #10b981; }
+    body.dark .hour-row.zebra { background: #162032; }
+    .best-badge { display:inline-block; font-size:0.58rem; font-weight:700; padding:2px 7px; border-radius:20px; background:#ecfdf5; color:#059669; border:1px solid #bbf7d0; white-space:nowrap; }
+    body.dark .best-badge { background:#052e16; color:#86efac; border-color:#065f46; }
+    .sess-best-line { font-size:0.75rem; color:var(--muted); padding:0 2px 8px; }
 
 .rec-pill {
       display: inline-block; font-size: 0.66rem; font-weight: 700;
@@ -275,6 +280,7 @@
     body.dark .sum-badge  { background:#0f172a; border-color:#334155; }
     body.dark .session-block { background:#0f172a; border-color:#334155; }
     body.dark .hour-row   { background:#1e293b; border-color:#334155; }
+    body.dark .hour-row.zebra { background:#162032; }
     body.dark .hour-row.hour-now { background: #1e3a5f; }
     body.dark .tips-block { background:#1e293b; border-color:#334155; }
     body.dark .tips-block p { color:#f1f5f9; }
@@ -750,7 +756,7 @@ function showDetail(dayIdx){
   }
 
   for(const sess of sessions){
-    // Pre-score all hours to find best 3
+    // Pre-score all hours to find the single best
     const hourData=[];
     for(let hr=sess.start;hr<sess.end;hr++){
       const idx=dayStart+hr;
@@ -765,34 +771,44 @@ function showDetail(dayIdx){
       const finalScore=score==='rain'?'rain':score==='heat'?'heat':wet?'wet':score;
       hourData.push({hr,idx,temp,feel,wind,gust,pp,code,score,wet,finalScore,rank:SCORE_RANK[finalScore]||0});
     }
-    // Find best 3 hours (rank >= 2 means at least "ok")
-    const bestHrs=hourData.filter(x=>x.rank>=2).sort((a,b)=>b.rank-a.rank).slice(0,3).map(x=>x.hr);
+    // Find the single best hour (rank >= 2 means at least "ok")
+    const playable=hourData.filter(x=>x.rank>=2).sort((a,b)=>b.rank-a.rank);
+    const bestHr=playable.length>0?playable[0].hr:-1;
+    const bestData=playable.length>0?playable[0]:null;
+
+    // Session summary line
+    const SCORE_LABEL={perfect:'Perfect',great:'Great',ok:'OK',windy:'Windy',bad:'Not playable',rain:'Rain',wet:'Wet',heat:'Too Hot'};
+    const bestLine=bestData
+      ?`<div class="sess-best-line">🏆 Best time: <strong>${formatHour(bestData.hr)}</strong> · ${SCORE_LABEL[bestData.finalScore]} · ${bestData.wind}/${bestData.gust} mph</div>`
+      :`<div class="sess-best-line">No ideal play window this session</div>`;
 
     html+=`<div class="session-block">
       <h3>${sess.label} &mdash; ${formatHour(sess.start)} to ${formatHour(sess.end-1)}</h3>
+      ${bestLine}
       <div class="hour-rows">
         <div class="hour-row" style="background:transparent;border-color:transparent;font-size:0.67rem;color:var(--muted);font-weight:600">
           <span>Time</span><span>Sky</span><span>Temp/Feel</span><span>Wind / Gust</span><span>Rain%</span><span>Play?</span>
         </div>`;
 
-    for(const hd of hourData){
+    hourData.forEach((hd,i)=>{
       const pill=PILL[hd.finalScore]||PILL.bad;
       const feelStr=Math.round(hd.feel)!==Math.round(hd.temp)
         ?`<span style="color:var(--muted);font-size:0.7rem"> (${Math.round(hd.feel)}°)</span>`:'';
       const isNow = dayIdx===0 && hd.hr===new Date().getHours();
-      const isBest = bestHrs.includes(hd.hr);
-      const rowCls = isNow?'hour-now':isBest?'best-hour':'';
-      const starTag = isBest?'<span style="font-size:0.65rem;margin-left:2px" title="Best hour">⭐</span>':'';
+      const isBest = hd.hr===bestHr;
+      const zebraCls = (!isNow && !isBest && i%2===1) ? 'zebra' : '';
+      const rowCls = isNow?'hour-now':isBest?'best-hour':zebraCls;
+      const bestTag = isBest?'<span class="best-badge">🏆 Best</span>':'';
       html+=`
         <div class="hour-row ${rowCls}">
-          <span class="hr-time">${formatHour(hd.hr)}${starTag}</span>
+          <span class="hr-time">${formatHour(hd.hr)}</span>
           <span class="hr-icon">${wmo(hd.code).icon}</span>
           <span>${Math.round(hd.temp)}°F${feelStr}</span>
           <span style="font-weight:600"><span style="color:${wc(hd.wind)}">${hd.wind}</span><span style="color:var(--muted);font-weight:400;font-size:0.72rem"> / </span><span style="color:${gc(hd.gust)};font-size:0.72rem">${hd.gust}</span></span>
           <span class="hr-rain">${hd.pp}%</span>
-          <span>${pill}</span>
+          <span>${pill}${bestTag}</span>
         </div>`;
-    }
+    });
     html+=`</div></div>`;
   }
   html+=buildTips(dayIdx,sessions,c);
@@ -830,14 +846,10 @@ function isCourtWet(idx, h, pp, code) {
   // If actively raining right now, courts are wet
   if (isRainingNow) return true;
 
-  // Check for heavy recent rain (>= 2mm in last 2 hours)
-  let recentMm = 0;
-  for (let back = 1; back <= 2; back++) {
-    const i = idx - back;
-    if (i < 0) break;
-    recentMm += h.precipitation[i] || 0;
-  }
-  return recentMm >= 2;
+  // Check for heavy rain in the last hour only (>= 2mm)
+  const prevIdx = idx - 1;
+  if (prevIdx >= 0 && (h.precipitation[prevIdx] || 0) >= 2) return true;
+  return false;
 }
 
 // ── Session score (per session, more granular than dayScore) ──────────────
