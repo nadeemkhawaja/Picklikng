@@ -123,7 +123,8 @@
 
     /* ── Legend ── */
     .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; font-size: 0.75rem; }
-    .legend-item { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+    .legend-item { display: flex; align-items: center; gap: 5px; color: var(--muted); padding: 4px 8px; border-radius: 6px; transition: background 0.2s; }
+    .legend-item.highlighted { background: var(--blue-bg); color: var(--blue); font-weight: 600; }
     .ldot { width: 9px; height: 9px; border-radius: 50%; }
 
     /* ── Forecast grid ── */
@@ -200,16 +201,7 @@
     .hr-rain { color: #2563eb; font-size: 0.78rem; }
     .hour-row.hour-now { border-left: 3px solid var(--blue); background: var(--blue-bg); }
 
-    /* ── Weekly summary strip ── */
-    .week-strip { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; }
-    .ws-day { flex:1; min-width:44px; text-align:center; padding:8px 4px; background:var(--card); border:1.5px solid var(--border); border-radius:10px; cursor:pointer; }
-    .ws-day:hover { border-color:var(--blue); }
-    .ws-dow { font-size:0.6rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.5px; }
-    .ws-dots { display:flex; justify-content:center; gap:4px; margin-top:4px; }
-    .ws-dot { width:8px; height:8px; border-radius:50%; }
-    body.dark .ws-day { background:var(--card); border-color:var(--border); }
-
-    .rec-pill {
+.rec-pill {
       display: inline-block; font-size: 0.66rem; font-weight: 700;
       padding: 2px 9px; border-radius: 20px; white-space: nowrap;
     }
@@ -394,7 +386,6 @@
     <span id="status-text">Loading…</span>
     <button class="hbtn" id="themeBtn" onclick="toggleDark()">🌙 Dark</button>
     <button class="hbtn" onclick="shareDay()">📤 Share</button>
-    <button class="hbtn" onclick="shareWhatsApp()">💬 WhatsApp</button>
     <button class="hbtn" id="installBtn" style="display:none" onclick="installApp()">📲 Install</button>
   </div>
 </header>
@@ -494,8 +485,8 @@ function buildSessions(date) {
   // Morning — every day (8 AM, 9 AM, 10 AM)
   sessions.push({ label:'Morning Session', start:8, end:11 });
 
-  // Evening — every day (5 PM through 11 PM)
-  sessions.push({ label:'Evening Session', start:17, end:24 });
+  // Evening — every day (5 PM through 10 PM)
+  sessions.push({ label:'Evening Session', start:17, end:23 });
 
   return sessions;
 }
@@ -641,6 +632,15 @@ function renderBestDay() {
   const calDetails=encodeURIComponent(`${wmo(d.weathercode[best.dayIdx]).icon} ${windRange} wind, ${sessTemp}°F at ${c.name}`);
   const calUrl=`https://calendar.google.com/calendar/event?action=TEMPLATE&text=Pickleball+Session&dates=${calStart}/${calEnd}&details=${calDetails}`;
   document.getElementById('bdcal').innerHTML=`<a href="${calUrl}" target="_blank">📅 Add to Calendar</a>`;
+  // Highlight matching legend item
+  const legendItems = document.querySelectorAll('.legend-item');
+  legendItems.forEach(item => item.classList.remove('highlighted'));
+  const scoreMap = {perfect: 0, great: 1, ok: 2, windy: 3, bad: 4, rain: 4, wet: 5, heat: 6};
+  const bestScore = sessionScore(best.sess, best.dayIdx*24, h, c);
+  const legendIdx = scoreMap[bestScore];
+  if (legendIdx !== undefined && legendItems[legendIdx]) {
+    legendItems[legendIdx].classList.add('highlighted');
+  }
 }
 
 // ── Forecast grid ─────────────────────────────────────────────────────────
@@ -650,26 +650,7 @@ function renderForecast() {
   const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const c=COURTS[selectedCourt];
 
-  // Weekly summary strip (next 7 days)
-  const SCORE_DOT_COLOR={perfect:'#059669',great:'#16a34a',ok:'#ca8a04',windy:'#ea580c',bad:'#dc2626',rain:'#dc2626',heat:'#dc2626',wet:'#dc2626'};
-  let stripHtml='<div class="week-strip">';
-  const stripCount=Math.min(7,d.time.length);
-  for(let i=0;i<stripCount;i++){
-    const sDate=new Date(d.time[i]+'T12:00:00');
-    const sDow=DOW[sDate.getDay()];
-    const sSessions=buildSessions(sDate);
-    const sDayStart=i*24;
-    const mornSess=sSessions.find(s=>s.label.includes('Morning'));
-    const eveSess=sSessions.find(s=>s.label.includes('Evening'));
-    const mornScore=mornSess?sessionScore(mornSess,sDayStart,h,c):'bad';
-    const eveScore=eveSess?sessionScore(eveSess,sDayStart,h,c):'bad';
-    const mornColor=SCORE_DOT_COLOR[mornScore]||'#dc2626';
-    const eveColor=SCORE_DOT_COLOR[eveScore]||'#dc2626';
-    stripHtml+=`<div class="ws-day" onclick="showDetail(${i})"><div class="ws-dow">${sDow}</div><div class="ws-dots"><span class="ws-dot" style="background:${mornColor}"></span><span class="ws-dot" style="background:${eveColor}"></span></div></div>`;
-  }
-  stripHtml+='</div>';
-
-  let html=stripHtml+'<div class="forecast-grid">';
+  let html='<div class="forecast-grid">';
   for(let i=0;i<d.time.length;i++){
     const date=new Date(d.time[i]+'T12:00:00');
     const sunset=parseTime(d.sunset[i]);
@@ -817,11 +798,7 @@ function buildTips(dayIdx,sessions,c){
   if(maxW<=12&&!wmo(code).rain) tips.push('✅ Conditions look great! Perfect day to bring new players or sharpen technique.');
   if(maxW>16&&maxW<=20) tips.push('⚠️ Wind above ideal. Serve into the wind, keep shots low, and dink cross-court more.');
   if(maxG>22) tips.push('🚫 High gusts expected — ball control will be difficult. Consider skipping or playing casually.');
-  if(precip>0.1||wmo(code).rain){
-    if(c.name.includes('Wylie')) tips.push('🌧️ Rain expected. Wylie\'s full top cover means light rain may still be playable — check before heading out.');
-    else tips.push('🌧️ Wet courts likely. Otto & Maxwell Creek have side covers only — Wylie (full top cover) is your best bet today.');
-  }
-  if(c.name.includes('Otto')&&maxW>10) tips.push('💨 Otto tends to be windier — Maxwell Creek or Wylie may be more comfortable today.');
+  if(precip>0.1||wmo(code).rain) tips.push('🌧️ Rain expected. Courts may be wet — check before heading out.');
   if(tips.length===0)return'';
   return`<div class="tips-block"><div class="tips-title">Tips for Today</div>${tips.map(t=>`<p>${t}</p>`).join('')}</div>`;
 }
@@ -905,21 +882,6 @@ function shareDay(){
   const text=`🏓 Pickl-IQ Forecast\n${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()} · ${c.name}\n${wmo(d.weathercode[selectedDayIdx]).icon} ${wmo(d.weathercode[selectedDayIdx]).label}\n🌡 ${hi}°/${lo}°F  💨 Wind: ${maxW} mph  Gust: ${maxG} mph\n${rec}\nhttps://nadeemkhawaja.github.io/Pickl-IQ`;
   if(navigator.share){navigator.share({title:'Pickl-IQ Forecast',text});}
   else{navigator.clipboard.writeText(text).then(()=>showToast('✓ Copied to clipboard!'));}
-}
-
-function shareWhatsApp(){
-  if(!weatherData)return;
-  const d=weatherData.daily, c=COURTS[selectedCourt];
-  const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const date=new Date(d.time[selectedDayIdx]+'T12:00:00');
-  const maxW=Math.round(d.windspeed_10m_max[selectedDayIdx]*c.windFactor);
-  const maxG=Math.round(d.windgusts_10m_max[selectedDayIdx]*c.windFactor);
-  const hi=Math.round(d.temperature_2m_max[selectedDayIdx]);
-  const lo=Math.round(d.temperature_2m_min[selectedDayIdx]);
-  const rec=maxW<=12&&!wmo(d.weathercode[selectedDayIdx]).rain?'✅ Great conditions!':maxW<=16?'⚠️ Borderline wind':'🚫 Too windy/rainy';
-  const text=`🏓 Pickl-IQ Forecast\n${DOW[date.getDay()]} ${MON[date.getMonth()]} ${date.getDate()} · ${c.name}\n${wmo(d.weathercode[selectedDayIdx]).icon} ${wmo(d.weathercode[selectedDayIdx]).label}\n🌡 ${hi}°/${lo}°F  💨 Wind: ${maxW} mph  Gust: ${maxG} mph\n${rec}\nhttps://nadeemkhawaja.github.io/Pickl-IQ`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`,'_blank');
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────
