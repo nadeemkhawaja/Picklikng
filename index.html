@@ -519,7 +519,9 @@ function wmo(c){return WMO[c]||{label:'Unknown',icon:'❓',rain:false};}
 function scoreHour(temp,wind,gust,pp,code,wf=1,feel) {
   const ew=wind*wf, eg=gust*wf, w=wmo(code);
   // Rain
-  if((w.rain&&pp>30)||pp>50||code>=95) return 'rain';
+  if(pp>50) return 'rain';                        // High rain probability
+  if(w.rain&&pp>25) return 'rain';               // Rain code + meaningful chance
+  if(code>=95&&pp>20) return 'rain';             // Thunderstorm code + real chance (not just model noise)
   // Heat index (apparent temperature)
   if(feel!==undefined&&feel>105) return 'heat';
   if(feel!==undefined&&feel>100) return 'windy';
