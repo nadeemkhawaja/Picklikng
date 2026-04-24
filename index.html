@@ -842,7 +842,7 @@ function buildTips(dayIdx,sessions,c){
 function isCourtWet(idx, h, pp, code) {
   if (!h.precipitation) return false;
   const rainCodes = [51, 53, 55, 61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99];
-  const isRainingNow = pp > 50 || rainCodes.includes(code);
+  const isRainingNow = pp > 50 || (rainCodes.includes(code) && pp > 25);
 
   // If actively raining right now, courts are wet
   if (isRainingNow) return true;
